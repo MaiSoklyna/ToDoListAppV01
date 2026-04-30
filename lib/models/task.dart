@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'recurrence.dart';
+import 'reminder.dart';
 
 class Task {
   final String id;
@@ -23,6 +24,13 @@ class Task {
   RecurrenceRule? recurrenceRule;
   List<String> attachments;
   String? sharedListId;
+  String? assigneeId;
+
+  // Reference-app parity fields. All optional; absent on legacy docs.
+  List<TaskReminder> reminders;
+  String? emoji;
+  int? estimatedMinutes;
+  String? completionNote;
 
   Task({
     required this.id,
@@ -41,7 +49,12 @@ class Task {
     this.recurrenceRule,
     this.attachments = const [],
     this.sharedListId,
+    this.assigneeId,
     this.completedAt,
+    this.reminders = const [],
+    this.emoji,
+    this.estimatedMinutes,
+    this.completionNote,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -67,6 +80,14 @@ class Task {
       'recurrenceRule': recurrenceRule?.toJson(),
       'attachments': attachments,
       'sharedListId': sharedListId,
+      'assigneeId': assigneeId,
+      // Optional fields: only emit when set so legacy docs round-trip
+      // unchanged and Firestore documents stay tidy.
+      if (reminders.isNotEmpty)
+        'reminders': reminders.map((r) => r.toJson()).toList(),
+      if (emoji != null) 'emoji': emoji,
+      if (estimatedMinutes != null) 'estimatedMinutes': estimatedMinutes,
+      if (completionNote != null) 'completionNote': completionNote,
     };
   }
 
@@ -102,9 +123,17 @@ class Task {
               .toList() ??
           [],
       sharedListId: json['sharedListId'] as String?,
+      assigneeId: json['assigneeId'] as String?,
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'] as String)
           : null,
+      reminders: (json['reminders'] as List<dynamic>?)
+              ?.map((r) => TaskReminder.fromJson(r as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      emoji: json['emoji'] as String?,
+      estimatedMinutes: json['estimatedMinutes'] as int?,
+      completionNote: json['completionNote'] as String?,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : null,
@@ -142,6 +171,15 @@ class Task {
     List<String>? attachments,
     String? sharedListId,
     bool clearSharedList = false,
+    String? assigneeId,
+    bool clearAssignee = false,
+    List<TaskReminder>? reminders,
+    String? emoji,
+    bool clearEmoji = false,
+    int? estimatedMinutes,
+    bool clearEstimatedMinutes = false,
+    String? completionNote,
+    bool clearCompletionNote = false,
   }) {
     return Task(
       id: id ?? this.id,
@@ -165,6 +203,15 @@ class Task {
       attachments: attachments ?? this.attachments,
       sharedListId:
           clearSharedList ? null : (sharedListId ?? this.sharedListId),
+      assigneeId: clearAssignee ? null : (assigneeId ?? this.assigneeId),
+      reminders: reminders ?? this.reminders,
+      emoji: clearEmoji ? null : (emoji ?? this.emoji),
+      estimatedMinutes: clearEstimatedMinutes
+          ? null
+          : (estimatedMinutes ?? this.estimatedMinutes),
+      completionNote: clearCompletionNote
+          ? null
+          : (completionNote ?? this.completionNote),
     );
   }
 }

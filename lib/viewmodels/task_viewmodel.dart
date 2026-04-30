@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../models/activity.dart';
+import '../models/reminder.dart';
 import '../models/task.dart';
+import '../services/activity_service.dart';
 import '../services/task_service.dart';
 import '../services/cache_service.dart';
 import '../services/notification_service.dart';
@@ -12,15 +15,20 @@ class TaskViewModel extends ChangeNotifier {
   final CacheService _cacheService = CacheService();
   final NotificationService _notificationService = NotificationService();
   final StreakService _streakService = StreakService();
+  final ActivityService _activityService = ActivityService();
 
   /// Callback triggered when a task is completed (for confetti)
   VoidCallback? onTaskCompleted;
 
   List<Task> _tasks = [];
+  List<Task> _personalTasks = [];
+  List<Task> _sharedTasks = [];
   bool _isLoading = false;
   String? _error;
   StreamSubscription? _streamSub;
+  StreamSubscription? _sharedStreamSub;
   String? _currentUserId;
+  List<String> _sharedListIds = const [];
 
   List<Task> get tasks => _tasks;
   bool get isLoading => _isLoading;
@@ -79,7 +87,8 @@ class TaskViewModel extends ChangeNotifier {
     _streamSub?.cancel();
     _streamSub = _taskService.streamTasks(userId).listen(
       (tasks) {
-        _tasks = tasks;
+        _personalTasks = tasks;
+        _rebuildMergedTasks();
         _isLoading = false;
         _error = null;
         _cacheService.cacheTasks(_tasks);
@@ -102,10 +111,58 @@ class TaskViewModel extends ChangeNotifier {
     );
   }
 
+  /// Update the set of shared lists this user belongs to. Re-subscribes the
+  /// shared-task stream and merges results into [tasks].
+  void setSharedListIds(List<String> listIds) {
+    final next = List<String>.from(listIds)..sort();
+    final prev = List<String>.from(_sharedListIds)..sort();
+    if (next.length == prev.length &&
+        List.generate(next.length, (i) => next[i] == prev[i]).every((x) => x)) {
+      return;
+    }
+    _sharedListIds = listIds;
+    _sharedStreamSub?.cancel();
+
+    if (listIds.isEmpty) {
+      _sharedTasks = const [];
+      _rebuildMergedTasks();
+      notifyListeners();
+      return;
+    }
+
+    _sharedStreamSub = _taskService.streamTasksForLists(listIds).listen(
+      (tasks) {
+        _sharedTasks = tasks;
+        _rebuildMergedTasks();
+        notifyListeners();
+      },
+      onError: (e) {
+        debugPrint('Shared task stream error: $e');
+      },
+    );
+  }
+
+  void _rebuildMergedTasks() {
+    final byId = <String, Task>{};
+    for (final t in _personalTasks) {
+      byId[t.id] = t;
+    }
+    for (final t in _sharedTasks) {
+      // Shared stream wins on conflict (same task may appear in both when the
+      // creator is also a member).
+      byId[t.id] = t;
+    }
+    _tasks = byId.values.toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
   Future<void> loadTasks(String userId) async {
     _isLoading = true;
     _error = null;
     _currentUserId = userId;
+    // Scope local caches to this user so a different account can't read them.
+    _cacheService.setUserId(userId);
+    _streakService.setUserId(userId);
     notifyListeners();
 
     // Load cached data first for fast display
@@ -169,8 +226,14 @@ class TaskViewModel extends ChangeNotifier {
       notifyListeners();
       await _taskService.addTask(task);
       await _cacheService.cacheTasks(_tasks);
-      if (task.dueDate != null) {
+      if (task.dueDate != null || task.reminders.isNotEmpty) {
         await _notificationService.scheduleTaskReminder(task);
+      }
+      _logActivity(task, ActivityType.created);
+      if (task.assigneeId != null) {
+        _logActivity(task, ActivityType.assigned, meta: {
+          'assigneeId': task.assigneeId,
+        });
       }
     } catch (e) {
       // Queue for offline sync
@@ -186,14 +249,19 @@ class TaskViewModel extends ChangeNotifier {
   Future<void> updateTask(Task task) async {
     final index = _tasks.indexWhere((t) => t.id == task.id);
     if (index == -1) return;
+    final previous = _tasks[index];
     try {
       _tasks[index] = task;
       notifyListeners();
       await _taskService.updateTask(task);
       await _cacheService.cacheTasks(_tasks);
-      if (task.dueDate != null) {
+      // Cancel the previously scheduled slots (knows old reminder ids) before
+      // re-scheduling, so renamed/removed reminders don't fire stale.
+      await _notificationService.cancelRemindersForTask(previous);
+      if (task.dueDate != null || task.reminders.isNotEmpty) {
         await _notificationService.scheduleTaskReminder(task);
       }
+      _logEditEvents(previous, task);
     } catch (e) {
       // Queue for offline sync instead of reverting
       await _cacheService.queueOperation(PendingOperation(
@@ -208,12 +276,14 @@ class TaskViewModel extends ChangeNotifier {
   Future<void> deleteTask(String taskId) async {
     final index = _tasks.indexWhere((t) => t.id == taskId);
     if (index == -1) return;
+    final removed = _tasks[index];
     try {
       _tasks.removeAt(index);
       notifyListeners();
       await _taskService.deleteTask(taskId);
       await _cacheService.cacheTasks(_tasks);
-      await _notificationService.cancelTaskReminder(taskId);
+      await _notificationService.cancelRemindersForTask(removed);
+      _logActivity(removed, ActivityType.deleted);
     } catch (e) {
       await _cacheService.queueOperation(PendingOperation(
         type: OperationType.delete,
@@ -237,9 +307,13 @@ class TaskViewModel extends ChangeNotifier {
       // Also update completedAt in Firestore
       await _taskService.updateTask(task);
       await _cacheService.cacheTasks(_tasks);
+      _logActivity(
+        task,
+        task.isCompleted ? ActivityType.completed : ActivityType.uncompleted,
+      );
 
       if (task.isCompleted) {
-        await _notificationService.cancelTaskReminder(taskId);
+        await _notificationService.cancelRemindersForTask(task);
         await _streakService.recordCompletion();
         onTaskCompleted?.call();
         // Handle recurring task: create next occurrence
@@ -257,11 +331,24 @@ class TaskViewModel extends ChangeNotifier {
     }
   }
 
-  /// Create the next occurrence of a recurring task
+  /// Create the next occurrence of a recurring task. Reminders carry forward
+  /// with fresh ids (so they don't share OS notification slots with the
+  /// completed parent) and shifted by the same delta as the due date.
   Future<void> _createNextRecurrence(Task completedTask) async {
     final nextDate =
         completedTask.recurrenceRule!.nextOccurrence(completedTask.dueDate!);
     if (nextDate == null) return;
+
+    final shift = nextDate.difference(completedTask.dueDate!);
+    final nextReminders = completedTask.reminders
+        .map((r) => TaskReminder(
+              id: const Uuid().v4(),
+              fireAt: r.fireAt.add(shift),
+              offsetMinutesBeforeDue: r.offsetMinutesBeforeDue,
+              // Snooze is per-occurrence — the user can snooze again if they
+              // want to push the new occurrence's reminder.
+            ))
+        .toList();
 
     final nextTask = completedTask.copyWith(
       id: const Uuid().v4(),
@@ -269,6 +356,7 @@ class TaskViewModel extends ChangeNotifier {
       dueDate: nextDate,
       createdAt: DateTime.now(),
       clearCompletedAt: true,
+      reminders: nextReminders,
     );
     await addTask(nextTask);
   }
@@ -278,9 +366,73 @@ class TaskViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clear all in-memory state and active subscriptions. Call on signOut so
+  /// the next account does not see the previous user's data.
+  void reset() {
+    _streamSub?.cancel();
+    _sharedStreamSub?.cancel();
+    _streamSub = null;
+    _sharedStreamSub = null;
+    _tasks = [];
+    _personalTasks = [];
+    _sharedTasks = [];
+    _sharedListIds = const [];
+    _currentUserId = null;
+    _isLoading = false;
+    _error = null;
+    onTaskCompleted = null;
+    notifyListeners();
+  }
+
+  void _logActivity(
+    Task task,
+    ActivityType type, {
+    Map<String, dynamic> meta = const {},
+  }) {
+    final listId = task.sharedListId;
+    final actor = _currentUserId;
+    if (listId == null || actor == null) return;
+    // Fire-and-forget; ActivityService swallows errors internally.
+    _activityService.log(
+      listId: listId,
+      actorId: actor,
+      type: type,
+      taskId: task.id,
+      taskTitle: task.title,
+      meta: meta,
+    );
+  }
+
+  void _logEditEvents(Task previous, Task next) {
+    if (next.sharedListId == null) return;
+
+    if (previous.assigneeId != next.assigneeId) {
+      if (next.assigneeId != null) {
+        _logActivity(next, ActivityType.assigned, meta: {
+          'assigneeId': next.assigneeId,
+          if (previous.assigneeId != null)
+            'previousAssigneeId': previous.assigneeId,
+        });
+      } else {
+        _logActivity(next, ActivityType.unassigned, meta: {
+          'previousAssigneeId': previous.assigneeId,
+        });
+      }
+    }
+
+    final contentChanged = previous.title != next.title ||
+        previous.description != next.description ||
+        previous.dueDate != next.dueDate ||
+        previous.priority != next.priority;
+    if (contentChanged) {
+      _logActivity(next, ActivityType.edited);
+    }
+  }
+
   @override
   void dispose() {
     _streamSub?.cancel();
+    _sharedStreamSub?.cancel();
     super.dispose();
   }
 }

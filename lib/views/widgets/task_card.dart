@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/task.dart';
 import '../../utils/app_localizations.dart';
+import '../../viewmodels/user_profile_viewmodel.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
   final VoidCallback? onTap;
   final VoidCallback? onToggle;
   final VoidCallback? onDelete;
+  final VoidCallback? onLongPress;
 
   const TaskCard({
     super.key,
@@ -14,6 +18,7 @@ class TaskCard extends StatelessWidget {
     this.onTap,
     this.onToggle,
     this.onDelete,
+    this.onLongPress,
   });
 
   @override
@@ -53,6 +58,7 @@ class TaskCard extends StatelessWidget {
             : null,
         child: InkWell(
           onTap: onTap,
+          onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -79,7 +85,9 @@ class TaskCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        task.title,
+                        task.emoji != null
+                            ? '${task.emoji}  ${task.title}'
+                            : task.title,
                         style: theme.textTheme.titleSmall?.copyWith(
                           decoration: task.isCompleted
                               ? TextDecoration.lineThrough
@@ -138,11 +146,28 @@ class TaskCard extends StatelessWidget {
                                 size: 12,
                                 color: theme.colorScheme.primary),
                           ],
+                          if (task.reminders.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Icon(Icons.notifications_active,
+                                size: 12,
+                                color: theme.colorScheme.primary),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${task.reminders.length}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ],
                           if (task.attachments.isNotEmpty) ...[
                             const SizedBox(width: 6),
                             Icon(Icons.attach_file,
                                 size: 12,
                                 color: theme.colorScheme.onSurfaceVariant),
+                          ],
+                          if (task.assigneeId != null) ...[
+                            const SizedBox(width: 6),
+                            _AssigneeAvatar(uid: task.assigneeId!),
                           ],
                         ],
                       ),
@@ -169,9 +194,48 @@ class TaskCard extends StatelessWidget {
     final tomorrow = today.add(const Duration(days: 1));
     final taskDate = DateTime(date.year, date.month, date.day);
 
-    if (taskDate == today) return l.get('today');
-    if (taskDate == tomorrow) return l.get('tomorrow');
-    return '${date.day}/${date.month}';
+    String dayLabel;
+    if (taskDate == today) {
+      dayLabel = l.get('today');
+    } else if (taskDate == tomorrow) {
+      dayLabel = l.get('tomorrow');
+    } else {
+      dayLabel = '${date.day}/${date.month}';
+    }
+
+    // Append the time when the user actually picked one. Tasks created
+    // with a date-only picker have hour=0 minute=0; the only false positive
+    // is tasks deliberately set to midnight, which is rare enough to not
+    // justify a separate "hasTime" flag on the model.
+    final hasTime = date.hour != 0 || date.minute != 0;
+    if (!hasTime) return dayLabel;
+    return '$dayLabel · ${DateFormat.jm().format(date)}';
+  }
+}
+
+class _AssigneeAvatar extends StatelessWidget {
+  final String uid;
+  const _AssigneeAvatar({required this.uid});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final profileVM = context.watch<UserProfileViewModel>();
+    return Tooltip(
+      message: profileVM.displayName(uid),
+      child: CircleAvatar(
+        radius: 9,
+        backgroundColor: theme.colorScheme.primaryContainer,
+        child: Text(
+          profileVM.initials(uid),
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onPrimaryContainer,
+          ),
+        ),
+      ),
+    );
   }
 }
 

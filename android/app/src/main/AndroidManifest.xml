@@ -1,4 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required by flutter_local_notifications zonedSchedule with
+         AndroidScheduleMode.exactAllowWhileIdle. Without these, Android 12+
+         silently downgrades to inexact alarms. USE_EXACT_ALARM (Android 13+)
+         is granted automatically for apps where exact scheduling is core
+         (calendars / alarm clocks / task reminders). -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <!-- Re-arm scheduled notifications after a device reboot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
     <application
         android:label="todolistapp"
         android:name="${applicationName}"

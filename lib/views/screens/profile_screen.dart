@@ -3,7 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_localizations.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/category_viewmodel.dart';
+import '../../viewmodels/label_viewmodel.dart';
+import '../../viewmodels/project_viewmodel.dart';
+import '../../viewmodels/shared_list_viewmodel.dart';
 import '../../viewmodels/task_viewmodel.dart';
+import '../../viewmodels/user_profile_viewmodel.dart';
 import '../../services/streak_service.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -162,6 +167,14 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   );
                   if (confirmed == true && context.mounted) {
+                    // Clear all per-user state before flipping auth so the
+                    // next account can't see the previous user's data.
+                    context.read<TaskViewModel>().reset();
+                    context.read<ProjectViewModel>().reset();
+                    context.read<LabelViewModel>().reset();
+                    context.read<CategoryViewModel>().reset();
+                    context.read<SharedListViewModel>().reset();
+                    context.read<UserProfileViewModel>().reset();
                     await authVM.signOut();
                     if (context.mounted) context.go('/login');
                   }

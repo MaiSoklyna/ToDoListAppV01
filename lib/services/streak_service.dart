@@ -2,9 +2,29 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/task.dart';
 
 class StreakService {
-  static const _boxName = 'streak_data';
+  static const _boxPrefix = 'streak_data';
+
+  // Singleton: shared across dashboard/profile/statistics/task VM so they
+  // all see the same scoped userId.
+  static final StreakService _instance = StreakService._internal();
+  factory StreakService() => _instance;
+  StreakService._internal();
+
+  String? _userId;
+
+  void setUserId(String? userId) {
+    _userId = userId;
+  }
+
+  String get _boxName => '${_boxPrefix}_${_userId ?? 'anon'}';
 
   Future<Box> _getBox() async => Hive.openBox(_boxName);
+
+  Future<void> clear() async {
+    if (_userId == null) return;
+    final box = await _getBox();
+    await box.clear();
+  }
 
   /// Record that the user completed a task today
   Future<void> recordCompletion() async {

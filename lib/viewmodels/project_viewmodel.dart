@@ -97,6 +97,15 @@ class ProjectViewModel extends ChangeNotifier {
     }
   }
 
+  void reset() {
+    _subscription?.cancel();
+    _subscription = null;
+    _projects = [];
+    _isLoading = false;
+    _error = null;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();

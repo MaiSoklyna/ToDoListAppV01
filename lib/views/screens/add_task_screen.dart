@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../models/reminder.dart';
 import '../../models/task.dart';
 import '../../models/recurrence.dart';
 import '../../utils/app_localizations.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/settings_viewmodel.dart';
 import '../../viewmodels/task_viewmodel.dart';
 import '../../viewmodels/category_viewmodel.dart';
 import '../../viewmodels/project_viewmodel.dart';
 import '../../viewmodels/label_viewmodel.dart';
+import '../../viewmodels/shared_list_viewmodel.dart';
+import '../../viewmodels/user_profile_viewmodel.dart';
+import '../widgets/task_comments_section.dart';
 
 // Predefined colors users can choose from
 const List<Color> _taskColors = [
@@ -43,9 +48,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   bool _isEditing = false;
   int? _selectedColorValue;
   String? _selectedProjectId;
+  String? _selectedSharedListId;
+  String? _selectedAssigneeId;
   List<String> _selectedLabelIds = [];
   RecurrenceRule? _recurrenceRule;
   final List<String> _attachments = [];
+  String? _selectedEmoji;
 
   @override
   void initState() {
@@ -65,9 +73,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       _subTasks.addAll(t.subTasks);
       _selectedColorValue = t.colorValue;
       _selectedProjectId = t.projectId;
+      _selectedSharedListId = t.sharedListId;
+      _selectedAssigneeId = t.assigneeId;
       _selectedLabelIds = List.from(t.labelIds);
       _recurrenceRule = t.recurrenceRule;
       _attachments.addAll(t.attachments);
+      _selectedEmoji = t.emoji;
+    } else {
+      // Fresh task with no incoming template — seed from user defaults.
+      // (Templates already carry whatever the QuickAddSheet picked.)
+      final settings = context.read<SettingsViewModel>();
+      _priority = settings.defaultPriority;
+      _category = settings.defaultCategory;
     }
   }
 
@@ -78,6 +95,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     _subTaskController.dispose();
     _attachmentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickEmoji() async {
+    final picked = await showModalBottomSheet<String?>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => _EmojiPickerSheet(current: _selectedEmoji),
+    );
+    if (!mounted) return;
+    if (picked == null) return; // Cancelled — leave as-is.
+    // The sheet returns empty string to mean "clear", any other value to set.
+    setState(() => _selectedEmoji = picked.isEmpty ? null : picked);
   }
 
   Future<void> _pickDate() async {
@@ -148,6 +177,38 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       return;
     }
 
+    // For edits, read the latest version from the viewmodel so fields not
+    // surfaced in this form (reminders, emoji, estimatedMinutes,
+    // completionNote) survive a re-save — including reminders added via the
+    // dedicated reminders screen.
+    final latest = _isEditing
+        ? taskVM.tasks
+            .cast<Task?>()
+            .firstWhere((t) => t?.id == widget.editTask!.id,
+                orElse: () => widget.editTask)
+        : null;
+
+    // Default reminder: only applies on fresh creates, only when the user
+    // configured one in settings, only when a due date exists, and only when
+    // the form has no other reminders set yet (so we never collide with a
+    // user-added reminder via the dedicated reminders screen).
+    final settings = context.read<SettingsViewModel>();
+    final existingReminders = latest?.reminders ?? const <TaskReminder>[];
+    final defaultOffset = settings.defaultReminderOffsetMinutes;
+    final shouldInjectDefaultReminder = !_isEditing &&
+        existingReminders.isEmpty &&
+        defaultOffset != null &&
+        _dueDate != null;
+    final reminders = shouldInjectDefaultReminder
+        ? <TaskReminder>[
+            TaskReminder(
+              id: const Uuid().v4(),
+              fireAt: _dueDate!.subtract(Duration(minutes: defaultOffset)),
+              offsetMinutesBeforeDue: defaultOffset,
+            ),
+          ]
+        : existingReminders;
+
     final task = Task(
       id: _isEditing ? widget.editTask!.id : const Uuid().v4(),
       title: _titleController.text.trim(),
@@ -161,10 +222,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       isCompleted: _isEditing ? widget.editTask!.isCompleted : false,
       createdAt: _isEditing ? widget.editTask!.createdAt : DateTime.now(),
       projectId: _selectedProjectId,
+      sharedListId: _selectedSharedListId,
+      assigneeId: _selectedSharedListId == null ? null : _selectedAssigneeId,
       labelIds: _selectedLabelIds,
       recurrenceRule: _recurrenceRule,
       isRecurring: _recurrenceRule != null,
       attachments: _attachments,
+      reminders: reminders,
+      // Emoji is form-controlled now; estimatedMinutes/completionNote
+      // aren't surfaced anywhere, so they piggyback on the latest snapshot.
+      emoji: _selectedEmoji,
+      estimatedMinutes: latest?.estimatedMinutes,
+      completionNote: latest?.completionNote,
     );
 
     if (_isEditing) {
@@ -313,6 +382,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     final categories = context.watch<CategoryViewModel>().categories;
     final projects = context.watch<ProjectViewModel>().projects;
     final labels = context.watch<LabelViewModel>().labels;
+    final sharedLists = context.watch<SharedListViewModel>().lists;
+    final profileVM = context.watch<UserProfileViewModel>();
+    final activeSharedList = _selectedSharedListId == null
+        ? null
+        : sharedLists
+            .where((l) => l.id == _selectedSharedListId)
+            .firstOrNull;
     final l = AppLocalizations.of(context);
 
     return Scaffold(
@@ -331,18 +407,30 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Title
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                labelText: l.get('taskTitle'),
-                hintText: l.get('taskTitleHint'),
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.title),
-              ),
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? l.get('titleRequired') : null,
-              textCapitalization: TextCapitalization.sentences,
+            // Title (with leading emoji picker)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _EmojiButton(
+                  emoji: _selectedEmoji,
+                  onTap: _pickEmoji,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      labelText: l.get('taskTitle'),
+                      hintText: l.get('taskTitleHint'),
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (v) => v == null || v.trim().isEmpty
+                        ? l.get('titleRequired')
+                        : null,
+                    textCapitalization: TextCapitalization.sentences,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 
@@ -359,6 +447,79 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 20),
+
+            // Shared list
+            if (sharedLists.isNotEmpty) ...[
+              Text('List', style: theme.textTheme.titleSmall),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('My Tasks'),
+                    avatar: const Icon(Icons.person_outline, size: 16),
+                    selected: _selectedSharedListId == null,
+                    onSelected: (_) =>
+                        setState(() => _selectedSharedListId = null),
+                  ),
+                  ...sharedLists.map((sl) => ChoiceChip(
+                        label: Text(sl.name),
+                        avatar: const Icon(Icons.group, size: 16),
+                        selected: _selectedSharedListId == sl.id,
+                        onSelected: (_) => setState(() {
+                          _selectedSharedListId = sl.id;
+                          // Reset assignee if switching lists & current
+                          // assignee isn't a member of the new list.
+                          if (_selectedAssigneeId != null &&
+                              !sl.memberIds.contains(_selectedAssigneeId)) {
+                            _selectedAssigneeId = null;
+                          }
+                        }),
+                      )),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // Assignee (only when a shared list is selected)
+            if (activeSharedList != null) ...[
+              Text('Assignee', style: theme.textTheme.titleSmall),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('Unassigned'),
+                    avatar: const Icon(Icons.person_off_outlined, size: 16),
+                    selected: _selectedAssigneeId == null,
+                    onSelected: (_) =>
+                        setState(() => _selectedAssigneeId = null),
+                  ),
+                  ...activeSharedList.memberIds.map((uid) {
+                    return ChoiceChip(
+                      label: Text(profileVM.displayName(uid)),
+                      avatar: CircleAvatar(
+                        radius: 10,
+                        backgroundColor: theme.colorScheme.primaryContainer,
+                        child: Text(
+                          profileVM.initials(uid),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                      selected: _selectedAssigneeId == uid,
+                      onSelected: (_) =>
+                          setState(() => _selectedAssigneeId = uid),
+                    );
+                  }),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
 
             // Project
             if (projects.isNotEmpty) ...[
@@ -537,6 +698,17 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             ),
             const SizedBox(height: 20),
 
+            // Reminders — managed on a dedicated screen so the bottom sheet
+            // pickers don't have to fight this form's layout. Disabled until
+            // the task has been saved (it needs a real id to navigate to).
+            Text('Reminders', style: theme.textTheme.titleSmall),
+            const SizedBox(height: 8),
+            _RemindersRow(
+              isEditing: _isEditing,
+              taskId: _isEditing ? widget.editTask!.id : null,
+            ),
+            const SizedBox(height: 20),
+
             // Priority
             Text(l.get('priority'), style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
@@ -668,6 +840,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                         setState(() => _subTasks.removeAt(entry.key)),
                   ),
                 )),
+
+            // Comments (shared tasks only, after first save)
+            if (_isEditing && _selectedSharedListId != null) ...[
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              TaskCommentsSection(taskId: widget.editTask!.id),
+            ],
           ],
         ),
       ),
@@ -676,5 +856,142 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   bool _isUrl(String text) {
     return text.startsWith('http://') || text.startsWith('https://');
+  }
+}
+
+class _EmojiButton extends StatelessWidget {
+  final String? emoji;
+  final VoidCallback onTap;
+
+  const _EmojiButton({required this.emoji, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          border: Border.all(color: theme.colorScheme.outline),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: emoji != null
+            ? Text(emoji!, style: const TextStyle(fontSize: 28))
+            : Icon(
+                Icons.add_reaction_outlined,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+      ),
+    );
+  }
+}
+
+class _EmojiPickerSheet extends StatelessWidget {
+  final String? current;
+  const _EmojiPickerSheet({required this.current});
+
+  // Compact preset set covering most common task themes. Users rarely use
+  // an emoji picker for tasks beyond a quick visual marker, so a curated
+  // grid is faster than a full-blown picker dialog.
+  static const List<String> _presets = [
+    '🎯', '🔥', '⭐', '✅', '⚠️', '⏰',
+    '💡', '📌', '📚', '💼', '🏠', '🛒',
+    '💪', '🍎', '🚗', '✈️', '🎉', '❤️',
+    '💰', '🎵', '🎨', '☕', '🐶', '🌱',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Text('Pick an emoji',
+                    style: theme.textTheme.titleMedium),
+                const Spacer(),
+                if (current != null)
+                  TextButton.icon(
+                    onPressed: () => Navigator.pop(context, ''),
+                    icon: const Icon(Icons.close, size: 18),
+                    label: const Text('Clear'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 6,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              children: _presets.map((e) {
+                final selected = e == current;
+                return InkWell(
+                  onTap: () => Navigator.pop(context, e),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? theme.colorScheme.primaryContainer
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(e, style: const TextStyle(fontSize: 26)),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RemindersRow extends StatelessWidget {
+  final bool isEditing;
+  final String? taskId;
+
+  const _RemindersRow({required this.isEditing, required this.taskId});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isEditing || taskId == null) {
+      return OutlinedButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.alarm),
+        label: const Text('Save the task first to add reminders'),
+      );
+    }
+
+    final taskVM = context.watch<TaskViewModel>();
+    final task = taskVM.tasks
+        .cast<Task?>()
+        .firstWhere((t) => t?.id == taskId, orElse: () => null);
+    final count = task?.reminders.length ?? 0;
+
+    return OutlinedButton.icon(
+      onPressed: () => context.pushNamed(
+        'taskReminders',
+        pathParameters: {'id': taskId!},
+      ),
+      icon: const Icon(Icons.alarm),
+      label: Text(count == 0
+          ? 'No reminders — tap to add'
+          : count == 1
+              ? '1 reminder'
+              : '$count reminders'),
+    );
   }
 }

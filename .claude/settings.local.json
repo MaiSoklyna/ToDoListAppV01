@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(cd D:/ToDoListApp && flutter pub get)",
-      "Bash(cd D:/ToDoListApp && flutter analyze --no-pub 2>&1 | head -30)"
+      "Bash(cd D:/ToDoListApp && flutter analyze --no-pub 2>&1 | head -30)",
+      "Bash(mkdir -p D:/ToDoListApp/assets/images)",
+      "Bash(mv D:/ToDoListApp/lib/images/backgroundforlightmode.png D:/ToDoListApp/assets/images/)",
+      "Bash(mv D:/ToDoListApp/lib/images/backgroundfordarkmode.png D:/ToDoListApp/assets/images/)",
+      "Bash(rmdir D:/ToDoListApp/lib/images)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter pub *)",
+      "Bash(firebase login:list *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

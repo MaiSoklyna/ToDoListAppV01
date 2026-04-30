@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/task.dart';
 
@@ -6,7 +8,7 @@ class TaskService {
 
   CollectionReference get _tasksRef => _firestore.collection('tasks');
 
-  /// Real-time stream of user's tasks
+  /// Real-time stream of user's tasks (personal + tasks they created in shared lists).
   Stream<List<Task>> streamTasks(String userId) {
     return _tasksRef
         .where('userId', isEqualTo: userId)
@@ -17,6 +19,47 @@ class TaskService {
       tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return tasks;
     });
+  }
+
+  /// Real-time stream of all tasks belonging to the given shared lists.
+  /// Firestore `whereIn` is limited to 30 values, so list IDs are chunked.
+  Stream<List<Task>> streamTasksForLists(List<String> listIds) {
+    if (listIds.isEmpty) return Stream.value(const []);
+
+    final chunks = <List<String>>[];
+    for (var i = 0; i < listIds.length; i += 30) {
+      chunks.add(listIds.sublist(i, (i + 30).clamp(0, listIds.length)));
+    }
+
+    final streams = chunks.map((chunk) => _tasksRef
+        .where('sharedListId', whereIn: chunk)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map((doc) => Task.fromFirestore(doc)).toList()));
+
+    // Merge: emit a combined list whenever any chunk updates.
+    final controller = StreamController<List<Task>>();
+    final latest = List<List<Task>>.filled(chunks.length, const []);
+    final subs = <StreamSubscription<List<Task>>>[];
+
+    var i = 0;
+    for (final s in streams) {
+      final idx = i++;
+      subs.add(s.listen((tasks) {
+        latest[idx] = tasks;
+        final merged = latest.expand((t) => t).toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        controller.add(merged);
+      }, onError: controller.addError));
+    }
+
+    controller.onCancel = () async {
+      for (final sub in subs) {
+        await sub.cancel();
+      }
+    };
+
+    return controller.stream;
   }
 
   Future<List<Task>> getTasks(String userId) async {

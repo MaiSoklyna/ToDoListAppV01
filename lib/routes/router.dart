@@ -11,6 +11,11 @@ import '../views/screens/help_screen.dart';
 import '../views/screens/project_detail_screen.dart';
 import '../views/screens/pomodoro_screen.dart';
 import '../views/screens/kanban_screen.dart';
+import '../views/screens/shared_lists_screen.dart';
+import '../views/screens/shared_list_activity_screen.dart';
+import '../views/screens/task_reminders_screen.dart';
+import '../views/screens/notes_screen.dart';
+import '../views/screens/search_screen.dart';
 
 GoRouter createAppRouter(AuthViewModel authVM) {
   return GoRouter(
@@ -89,12 +94,41 @@ GoRouter createAppRouter(AuthViewModel authVM) {
         builder: (context, state) => const KanbanScreen(),
       ),
       GoRoute(
+        path: '/shared-lists',
+        name: 'sharedLists',
+        builder: (context, state) => const SharedListsScreen(),
+      ),
+      GoRoute(
+        path: '/shared-lists/:id/activity',
+        name: 'sharedListActivity',
+        builder: (context, state) => SharedListActivityScreen(
+          listId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
         path: '/project/:id',
         name: 'projectDetail',
         builder: (context, state) {
           final projectId = state.pathParameters['id']!;
           return ProjectDetailScreen(projectId: projectId);
         },
+      ),
+      GoRoute(
+        path: '/task/:id/reminders',
+        name: 'taskReminders',
+        builder: (context, state) => TaskRemindersScreen(
+          taskId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/notes',
+        name: 'notes',
+        builder: (context, state) => const NotesScreen(),
+      ),
+      GoRoute(
+        path: '/search',
+        name: 'search',
+        builder: (context, state) => const SearchScreen(),
       ),
     ],
   );

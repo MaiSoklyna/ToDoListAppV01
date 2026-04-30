@@ -8,18 +8,37 @@ class SettingsViewModel extends ChangeNotifier {
   static const _onboardingKey = 'onboardingSeen';
   static const _biometricKey = 'biometricEnabled';
   static const _notificationsKey = 'notificationsEnabled';
+  // New-task defaults — applied by AddTaskScreen and QuickAddSheet when
+  // the user creates a fresh task. -1 on the offset means "no default
+  // reminder"; values 0+ are minutes-before-due.
+  static const _defaultPriorityKey = 'defaultPriority';
+  static const _defaultCategoryKey = 'defaultCategory';
+  static const _defaultReminderOffsetKey = 'defaultReminderOffsetMinutes';
 
   ThemeMode _themeMode = ThemeMode.system;
   Locale _locale = const Locale('en');
   bool _onboardingSeen = false;
   bool _biometricEnabled = false;
   bool _notificationsEnabled = true;
+  int _defaultPriority = 2;
+  String _defaultCategory = 'General';
+  int _defaultReminderOffsetMinutes = -1;
 
   ThemeMode get themeMode => _themeMode;
   Locale get locale => _locale;
   bool get onboardingSeen => _onboardingSeen;
   bool get biometricEnabled => _biometricEnabled;
   bool get notificationsEnabled => _notificationsEnabled;
+  int get defaultPriority => _defaultPriority;
+  String get defaultCategory => _defaultCategory;
+
+  /// Minutes-before-due to schedule a default reminder, or null when the
+  /// user opted out. UI uses null for "Off"; storage uses -1 to keep the
+  /// box value-typed.
+  int? get defaultReminderOffsetMinutes =>
+      _defaultReminderOffsetMinutes < 0
+          ? null
+          : _defaultReminderOffsetMinutes;
 
   Future<void> init() async {
     final box = await Hive.openBox(_boxName);
@@ -28,6 +47,12 @@ class SettingsViewModel extends ChangeNotifier {
     _onboardingSeen = box.get(_onboardingKey, defaultValue: false) as bool;
     _biometricEnabled = box.get(_biometricKey, defaultValue: false) as bool;
     _notificationsEnabled = box.get(_notificationsKey, defaultValue: true) as bool;
+    _defaultPriority =
+        box.get(_defaultPriorityKey, defaultValue: 2) as int;
+    _defaultCategory =
+        box.get(_defaultCategoryKey, defaultValue: 'General') as String;
+    _defaultReminderOffsetMinutes =
+        box.get(_defaultReminderOffsetKey, defaultValue: -1) as int;
 
     _themeMode = _parseThemeMode(savedTheme);
     _locale = Locale(savedLocale);
@@ -67,6 +92,28 @@ class SettingsViewModel extends ChangeNotifier {
     notifyListeners();
     final box = await Hive.openBox(_boxName);
     await box.put(_notificationsKey, enabled);
+  }
+
+  Future<void> setDefaultPriority(int priority) async {
+    _defaultPriority = priority;
+    notifyListeners();
+    final box = await Hive.openBox(_boxName);
+    await box.put(_defaultPriorityKey, priority);
+  }
+
+  Future<void> setDefaultCategory(String category) async {
+    _defaultCategory = category;
+    notifyListeners();
+    final box = await Hive.openBox(_boxName);
+    await box.put(_defaultCategoryKey, category);
+  }
+
+  /// Pass null to disable the default reminder.
+  Future<void> setDefaultReminderOffsetMinutes(int? minutes) async {
+    _defaultReminderOffsetMinutes = minutes ?? -1;
+    notifyListeners();
+    final box = await Hive.openBox(_boxName);
+    await box.put(_defaultReminderOffsetKey, _defaultReminderOffsetMinutes);
   }
 
   ThemeMode _parseThemeMode(String value) {

@@ -32,6 +32,10 @@ class _PomodoroScreenState extends State<PomodoroScreen>
   Task? _selectedTask;
   DateTime? _timerStartedAt;
 
+  /// Per-task focus session counts. Keyed by task id; persisted under
+  /// 'taskCounts' in the same Hive box as the rest of pomodoro state.
+  Map<String, int> _taskCounts = {};
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -77,6 +81,9 @@ class _PomodoroScreenState extends State<PomodoroScreen>
       'completedPomodoros': _completedPomodoros,
       'timerStartedAt': _timerStartedAt?.toIso8601String(),
       'selectedTaskId': _selectedTask?.id,
+      // Persist as a JSON-friendly map<String,int>.
+      // Hive boxes accept Map<String, int> directly — no manual serialization.
+      'taskCounts': Map<String, int>.from(_taskCounts),
     });
   }
 
@@ -133,6 +140,17 @@ class _PomodoroScreenState extends State<PomodoroScreen>
           _selectedTask = taskVM.activeTasks.firstWhere((t) => t.id == taskId);
         } catch (_) {}
       }
+
+      // Restore per-task counts. Hive returns the inner map as
+      // Map<dynamic, dynamic>, so we re-cast key/value types defensively.
+      final raw = box.get('taskCounts');
+      if (raw is Map) {
+        _taskCounts = {
+          for (final e in raw.entries)
+            if (e.key is String && e.value is int)
+              e.key as String: e.value as int,
+        };
+      }
     } catch (_) {}
   }
 
@@ -185,6 +203,11 @@ class _PomodoroScreenState extends State<PomodoroScreen>
     if (!_isBreak) {
       setState(() {
         _completedPomodoros++;
+        // Credit the focus session to the selected task, if any.
+        final taskId = _selectedTask?.id;
+        if (taskId != null) {
+          _taskCounts[taskId] = (_taskCounts[taskId] ?? 0) + 1;
+        }
         _isBreak = true;
         _totalSeconds = (_completedPomodoros % 4 == 0)
             ? _longBreakMinutes * 60
@@ -263,6 +286,18 @@ class _PomodoroScreenState extends State<PomodoroScreen>
                   ),
                 ],
               ),
+
+              // Focused-task banner — only when something is selected and we
+              // aren't on a break (breaks aren't credited to a task).
+              if (_selectedTask != null && !_isBreak) ...[
+                const SizedBox(height: 16),
+                _FocusedTaskBanner(
+                  task: _selectedTask!,
+                  sessionsForThisTask:
+                      _taskCounts[_selectedTask!.id] ?? 0,
+                  tone: timerColor,
+                ),
+              ],
               const SizedBox(height: 32),
 
               // Timer circle
@@ -436,6 +471,81 @@ class _PomodoroScreenState extends State<PomodoroScreen>
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _FocusedTaskBanner extends StatelessWidget {
+  final Task task;
+  final int sessionsForThisTask;
+  final Color tone;
+
+  const _FocusedTaskBanner({
+    required this.task,
+    required this.sessionsForThisTask,
+    required this.tone,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: tone.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: tone.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.center_focus_strong, color: tone, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Focusing on',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+                Text(
+                  task.emoji != null
+                      ? '${task.emoji}  ${task.title}'
+                      : task.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (sessionsForThisTask > 0) ...[
+            const SizedBox(width: 12),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: tone.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                sessionsForThisTask == 1
+                    ? '1 session'
+                    : '$sessionsForThisTask sessions',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: tone,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

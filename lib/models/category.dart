@@ -5,12 +5,14 @@ class TaskCategory {
   String name;
   IconData icon;
   Color color;
+  String? userId;
 
   TaskCategory({
     required this.id,
     required this.name,
     this.icon = Icons.label,
     this.color = Colors.blue,
+    this.userId,
   });
 
   Map<String, dynamic> toJson() {
@@ -19,6 +21,7 @@ class TaskCategory {
       'name': name,
       'iconCodePoint': icon.codePoint,
       'colorValue': color.toARGB32(),
+      'userId': userId,
     };
   }
 
@@ -29,6 +32,7 @@ class TaskCategory {
       icon: IconData(json['iconCodePoint'] as int? ?? Icons.label.codePoint,
           fontFamily: 'MaterialIcons'),
       color: Color(json['colorValue'] as int? ?? Colors.blue.toARGB32()),
+      userId: json['userId'] as String?,
     );
   }
 

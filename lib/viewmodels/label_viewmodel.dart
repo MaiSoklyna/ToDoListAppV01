@@ -97,6 +97,15 @@ class LabelViewModel extends ChangeNotifier {
     }
   }
 
+  void reset() {
+    _subscription?.cancel();
+    _subscription = null;
+    _labels = [];
+    _isLoading = false;
+    _error = null;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();

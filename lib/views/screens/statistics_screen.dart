@@ -302,6 +302,28 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
           const SizedBox(height: 24),
 
+          // 30-day completion trend line chart
+          Text('Last 30 days',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 180,
+            child: _build30DayTrend(context, theme, taskVM, now),
+          ),
+          const SizedBox(height: 24),
+
+          // Day-of-week productivity bar chart
+          Text('By day of week',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 180,
+            child: _buildDayOfWeek(context, theme, taskVM),
+          ),
+          const SizedBox(height: 24),
+
           // Weekly bar chart
           Text(l.get('thisWeek'),
               style: theme.textTheme.titleMedium
@@ -415,6 +437,147 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   theme: theme),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  /// Line chart of daily completion counts for the last 30 days. Uses
+  /// completedAt for accuracy (so back-dated completions show on the right
+  /// day, not the day they were entered).
+  Widget _build30DayTrend(
+    BuildContext context,
+    ThemeData theme,
+    TaskViewModel taskVM,
+    DateTime now,
+  ) {
+    final spots = <FlSpot>[];
+    int maxY = 0;
+    for (int i = 29; i >= 0; i--) {
+      final day = now.subtract(Duration(days: i));
+      final count = taskVM.getCompletedOnDate(day).length;
+      spots.add(FlSpot((29 - i).toDouble(), count.toDouble()));
+      if (count > maxY) maxY = count;
+    }
+    return LineChart(
+      LineChartData(
+        minY: 0,
+        maxY: (maxY + 1).toDouble(),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: maxY == 0 ? 1 : (maxY / 4).ceilToDouble(),
+          getDrawingHorizontalLine: (_) => FlLine(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+            strokeWidth: 1,
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        titlesData: FlTitlesData(
+          // Show "30d ago" / "today" only — keeps the axis clean.
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 24,
+              interval: 29,
+              getTitlesWidget: (value, _) {
+                final label = value == 0 ? '30d ago' : 'today';
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(label, style: theme.textTheme.labelSmall),
+                );
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 24,
+              interval: maxY == 0 ? 1 : (maxY / 2).ceilToDouble(),
+              getTitlesWidget: (value, _) => Text(
+                value.toInt().toString(),
+                style: theme.textTheme.labelSmall,
+              ),
+            ),
+          ),
+          topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false)),
+        ),
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            curveSmoothness: 0.25,
+            color: theme.colorScheme.primary,
+            barWidth: 2.5,
+            dotData: const FlDotData(show: false),
+            belowBarData: BarAreaData(
+              show: true,
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Bar chart of total completions bucketed by weekday over the user's
+  /// entire history. Surfaces patterns like "I close out tasks on Sundays."
+  Widget _buildDayOfWeek(
+    BuildContext context,
+    ThemeData theme,
+    TaskViewModel taskVM,
+  ) {
+    // 1=Mon..7=Sun. Initialise all keys so empty days still render a 0 bar.
+    final byWeekday = <int, int>{for (int i = 1; i <= 7; i++) i: 0};
+    for (final task in taskVM.completedTasks) {
+      final at = task.completedAt;
+      if (at == null) continue;
+      byWeekday[at.weekday] = (byWeekday[at.weekday] ?? 0) + 1;
+    }
+    final maxY = byWeekday.values.fold<int>(0, (m, v) => v > m ? v : m);
+    const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: (maxY + 1).toDouble(),
+        barTouchData: BarTouchData(enabled: true),
+        gridData: const FlGridData(show: false),
+        borderData: FlBorderData(show: false),
+        titlesData: FlTitlesData(
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, _) => Text(
+                labels[value.toInt() - 1],
+                style: theme.textTheme.labelSmall,
+              ),
+            ),
+          ),
+          leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false)),
+        ),
+        barGroups: [
+          for (int day = 1; day <= 7; day++)
+            BarChartGroupData(
+              x: day,
+              barRods: [
+                BarChartRodData(
+                  toY: (byWeekday[day] ?? 0).toDouble(),
+                  color: theme.colorScheme.tertiary,
+                  width: 18,
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(6)),
+                ),
+              ],
+            ),
         ],
       ),
     );

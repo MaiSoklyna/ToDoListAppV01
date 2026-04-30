@@ -1,8 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import '../models/category.dart';
+import '../models/label.dart';
+import '../models/note.dart';
+import '../models/project.dart';
 import '../models/task.dart';
 
 class ExportService {
@@ -137,6 +142,195 @@ class ExportService {
     await OpenFilex.open(path);
   }
 
+  // ---------------------------------------------------------------------------
+  // JSON backup / restore
+  //
+  // Categories are included only when the user has customized them
+  // (userId != null). Built-in defaults are seeded from code on every fresh
+  // install, so backing them up would create wasteful duplicate docs after
+  // a restore.
+  // ---------------------------------------------------------------------------
+
+  // Bumped to v2 with the categories field. Restore still accepts v1 backups
+  // — missing fields default to empty lists.
+  static const int _backupSchemaVersion = 2;
+  static const String _backupFilePrefix = 'taskmaster_backup_';
+
+  /// Write a JSON snapshot of the user's data to app documents and return the
+  /// file path. Includes a [_backupSchemaVersion] field so future restores can
+  /// detect and migrate older formats.
+  Future<String> exportBackupJson({
+    required List<Task> tasks,
+    required List<Project> projects,
+    required List<Label> labels,
+    required List<Note> notes,
+    required List<TaskCategory> categories,
+  }) async {
+    final customCategories =
+        categories.where((c) => c.userId != null).toList();
+    final payload = <String, dynamic>{
+      'schemaVersion': _backupSchemaVersion,
+      'exportedAt': DateTime.now().toIso8601String(),
+      'app': 'TaskMaster Pro',
+      'tasks': tasks.map((t) => t.toJson()).toList(),
+      'projects': projects.map((p) => p.toJson()).toList(),
+      'labels': labels.map((l) => l.toJson()).toList(),
+      'notes': notes.map((n) => n.toJson()).toList(),
+      'categories': customCategories.map((c) => c.toJson()).toList(),
+    };
+    final dir = await getApplicationDocumentsDirectory();
+    final now = DateTime.now();
+    final file =
+        File('${dir.path}/$_backupFilePrefix${now.millisecondsSinceEpoch}.json');
+    await file.writeAsString(jsonEncode(payload));
+    return file.path;
+  }
+
+  /// List existing backup files in app documents, newest first.
+  Future<List<File>> listBackups() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final entities = dir.listSync().whereType<File>().where((f) {
+      final name = f.uri.pathSegments.last;
+      return name.startsWith(_backupFilePrefix) && name.endsWith('.json');
+    }).toList();
+    entities.sort((a, b) =>
+        b.statSync().modified.compareTo(a.statSync().modified));
+    return entities;
+  }
+
+  /// Append-only restore: every entity in the backup is added if its id is
+  /// not already present locally. Existing entities are never overwritten,
+  /// so a misaimed restore can't silently destroy data.
+  ///
+  /// Each entity is re-stamped with [userId] so a backup taken from a
+  /// different account becomes the current user's data once imported.
+  ///
+  /// Order matters: projects/labels first, then tasks (which reference them
+  /// by id), then notes. Returns per-collection counts.
+  Future<RestoreResult> restoreFromBackupJson({
+    required String path,
+    required String userId,
+    required Future<void> Function(Task) addTask,
+    required Future<void> Function(Project) addProject,
+    required Future<void> Function(Label) addLabel,
+    required Future<void> Function(Note) addNote,
+    required Future<void> Function(TaskCategory) addCategory,
+    required Set<String> existingTaskIds,
+    required Set<String> existingProjectIds,
+    required Set<String> existingLabelIds,
+    required Set<String> existingNoteIds,
+    required Set<String> existingCategoryIds,
+  }) async {
+    final raw = await File(path).readAsString();
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Backup file is not a valid JSON object.');
+    }
+    final version = decoded['schemaVersion'];
+    if (version is! int || version > _backupSchemaVersion) {
+      throw FormatException(
+        'Unsupported backup schemaVersion: $version. '
+        'This app supports up to $_backupSchemaVersion.',
+      );
+    }
+
+    final result = RestoreResult();
+
+    // Categories first — tasks reference them by name, but having the icon/
+    // color present beforehand means restored tasks render correctly the
+    // moment they appear. Built-in default ids are also in
+    // existingCategoryIds, so an old v1 backup that didn't filter defaults
+    // out will skip them here.
+    final categories = (decoded['categories'] as List?) ?? const [];
+    for (final raw in categories) {
+      final c = TaskCategory.fromJson(raw as Map<String, dynamic>);
+      if (existingCategoryIds.contains(c.id)) {
+        result.categoriesSkipped++;
+        continue;
+      }
+      c.userId = userId;
+      try {
+        await addCategory(c);
+        result.categoriesAdded++;
+      } catch (_) {
+        result.categoriesFailed++;
+      }
+    }
+
+    final projects = (decoded['projects'] as List?) ?? const [];
+    for (final raw in projects) {
+      final p = Project.fromJson(raw as Map<String, dynamic>);
+      if (existingProjectIds.contains(p.id)) {
+        result.projectsSkipped++;
+        continue;
+      }
+      p.userId = userId;
+      try {
+        await addProject(p);
+        result.projectsAdded++;
+      } catch (_) {
+        result.projectsFailed++;
+      }
+    }
+
+    final labels = (decoded['labels'] as List?) ?? const [];
+    for (final raw in labels) {
+      final l = Label.fromJson(raw as Map<String, dynamic>);
+      if (existingLabelIds.contains(l.id)) {
+        result.labelsSkipped++;
+        continue;
+      }
+      l.userId = userId;
+      try {
+        await addLabel(l);
+        result.labelsAdded++;
+      } catch (_) {
+        result.labelsFailed++;
+      }
+    }
+
+    final tasks = (decoded['tasks'] as List?) ?? const [];
+    for (final raw in tasks) {
+      final t = Task.fromJson(raw as Map<String, dynamic>);
+      if (existingTaskIds.contains(t.id)) {
+        result.tasksSkipped++;
+        continue;
+      }
+      t.userId = userId;
+      // A backup from a different account would carry sharedListId/assigneeId
+      // referring to lists/users the new account isn't a member of. Strip
+      // those so the restored task lands as a personal task.
+      final personal = t.copyWith(
+        clearSharedList: true,
+        clearAssignee: true,
+      );
+      try {
+        await addTask(personal);
+        result.tasksAdded++;
+      } catch (_) {
+        result.tasksFailed++;
+      }
+    }
+
+    final notes = (decoded['notes'] as List?) ?? const [];
+    for (final raw in notes) {
+      final n = Note.fromJson(raw as Map<String, dynamic>);
+      if (existingNoteIds.contains(n.id)) {
+        result.notesSkipped++;
+        continue;
+      }
+      n.userId = userId;
+      try {
+        await addNote(n);
+        result.notesAdded++;
+      } catch (_) {
+        result.notesFailed++;
+      }
+    }
+
+    return result;
+  }
+
   pw.Widget _statBox(String label, String value) {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -228,5 +422,46 @@ class ExportService {
       return '"${value.replaceAll('"', '""')}"';
     }
     return value;
+  }
+}
+
+class RestoreResult {
+  int tasksAdded = 0, tasksSkipped = 0, tasksFailed = 0;
+  int projectsAdded = 0, projectsSkipped = 0, projectsFailed = 0;
+  int labelsAdded = 0, labelsSkipped = 0, labelsFailed = 0;
+  int notesAdded = 0, notesSkipped = 0, notesFailed = 0;
+  int categoriesAdded = 0, categoriesSkipped = 0, categoriesFailed = 0;
+
+  int get totalAdded =>
+      tasksAdded +
+      projectsAdded +
+      labelsAdded +
+      notesAdded +
+      categoriesAdded;
+  int get totalSkipped =>
+      tasksSkipped +
+      projectsSkipped +
+      labelsSkipped +
+      notesSkipped +
+      categoriesSkipped;
+  int get totalFailed =>
+      tasksFailed +
+      projectsFailed +
+      labelsFailed +
+      notesFailed +
+      categoriesFailed;
+
+  String summary() {
+    final parts = <String>[];
+    if (tasksAdded > 0) parts.add('$tasksAdded tasks');
+    if (projectsAdded > 0) parts.add('$projectsAdded projects');
+    if (labelsAdded > 0) parts.add('$labelsAdded labels');
+    if (notesAdded > 0) parts.add('$notesAdded notes');
+    if (categoriesAdded > 0) parts.add('$categoriesAdded categories');
+    final added = parts.isEmpty ? 'Nothing new' : 'Added ${parts.join(', ')}';
+    final extras = <String>[];
+    if (totalSkipped > 0) extras.add('$totalSkipped already present');
+    if (totalFailed > 0) extras.add('$totalFailed failed');
+    return extras.isEmpty ? added : '$added · ${extras.join(' · ')}';
   }
 }

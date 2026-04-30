@@ -10,12 +10,25 @@ class CategoryService {
     final snapshot = await _categoriesRef
         .where('userId', isEqualTo: userId)
         .get();
-    if (snapshot.docs.isEmpty) {
-      return TaskCategory.defaultCategories;
-    }
-    return snapshot.docs
+    final custom = snapshot.docs
         .map((doc) => TaskCategory.fromJson(doc.data() as Map<String, dynamic>))
         .toList();
+    return _mergeWithDefaults(custom);
+  }
+
+  /// Merge user-defined categories with the built-in defaults so existing
+  /// tasks tagged with default category names (General/Work/Personal/...)
+  /// keep rendering with their icon/color even after the user adds custom
+  /// ones. Custom takes precedence on id collision so a user can override
+  /// a default by saving one with the same id.
+  List<TaskCategory> _mergeWithDefaults(List<TaskCategory> custom) {
+    final byId = <String, TaskCategory>{
+      for (final d in TaskCategory.defaultCategories) d.id: d,
+    };
+    for (final c in custom) {
+      byId[c.id] = c;
+    }
+    return byId.values.toList();
   }
 
   Future<void> addCategory(TaskCategory category) async {
