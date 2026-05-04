@@ -56,6 +56,9 @@ dependencies:
   # Animations
   confetti: ^0.7.0
 
+  # Typography (Battambang, Nokora, Inter served at runtime)
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -65,3 +68,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/icon/
+    - assets/images/logos/
+    - assets/images/backgorund/

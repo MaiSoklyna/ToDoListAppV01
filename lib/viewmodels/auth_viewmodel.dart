@@ -37,12 +37,14 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
       return _user != null;
     } on FirebaseAuthException catch (e) {
+      debugPrint('SignIn FirebaseAuthException: code=${e.code} message=${e.message}');
       _error = _mapAuthError(e.code);
       _isLoading = false;
       notifyListeners();
       return false;
     } catch (e) {
-      _error = 'Authentication failed. Please try again.';
+      debugPrint('SignIn unexpected error: $e');
+      _error = 'Authentication failed. Please try again. ($e)';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -59,12 +61,14 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
       return _user != null;
     } on FirebaseAuthException catch (e) {
+      debugPrint('Register FirebaseAuthException: code=${e.code} message=${e.message}');
       _error = _mapAuthError(e.code);
       _isLoading = false;
       notifyListeners();
       return false;
     } catch (e) {
-      _error = 'Registration failed. Please try again.';
+      debugPrint('Register unexpected error: $e');
+      _error = 'Registration failed. Please try again. ($e)';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -122,7 +126,9 @@ class AuthViewModel extends ChangeNotifier {
       case 'user-not-found':
         return 'No account found with this email.';
       case 'wrong-password':
-        return 'Incorrect password.';
+      case 'invalid-credential':
+      case 'invalid-login-credentials':
+        return 'Incorrect email or password.';
       case 'email-already-in-use':
         return 'An account already exists with this email.';
       case 'weak-password':
@@ -131,8 +137,17 @@ class AuthViewModel extends ChangeNotifier {
         return 'Please enter a valid email address.';
       case 'too-many-requests':
         return 'Too many attempts. Please try again later.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'operation-not-allowed':
+        return 'Email/Password sign-in is disabled. Enable it in Firebase Console → Authentication → Sign-in method.';
+      case 'network-request-failed':
+        return 'Network error. Check your internet connection.';
+      case 'api-key-not-valid':
+      case 'app-not-authorized':
+        return 'App configuration error. Please reinstall the app.';
       default:
-        return 'Authentication failed. Please try again.';
+        return 'Authentication failed (code: $code). Please try again.';
     }
   }
 }

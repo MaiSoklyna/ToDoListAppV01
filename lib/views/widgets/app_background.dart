@@ -9,8 +9,8 @@ class AppBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final asset = isDark
-        ? 'assets/images/backgroundfordarkmode.png'
-        : 'assets/images/backgroundforlightmode.png';
+        ? 'assets/images/backgorund/bgdarkmode.png'
+        : 'assets/images/backgorund/bglightmode.png';
 
     return Container(
       decoration: BoxDecoration(

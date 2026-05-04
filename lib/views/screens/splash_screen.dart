@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../utils/user_session_bootstrap.dart';
 import '../../viewmodels/auth_viewmodel.dart';
-import '../../viewmodels/task_viewmodel.dart';
-import '../../viewmodels/category_viewmodel.dart';
 import '../../viewmodels/settings_viewmodel.dart';
-import '../../viewmodels/project_viewmodel.dart';
-import '../../viewmodels/label_viewmodel.dart';
 import '../../viewmodels/shared_list_viewmodel.dart';
+import '../../viewmodels/task_viewmodel.dart';
 import '../../viewmodels/user_profile_viewmodel.dart';
-import '../../viewmodels/note_viewmodel.dart';
 import '../../services/biometric_service.dart';
-import '../../services/notification_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -72,47 +68,15 @@ class _SplashScreenState extends State<SplashScreen>
         return;
       }
 
-      // Load user data with error handling
-      try {
-        await Future.wait([
-          context.read<TaskViewModel>().loadTasks(userId),
-          context.read<CategoryViewModel>().loadCategories(userId),
-          context.read<ProjectViewModel>().loadProjects(userId),
-          context.read<LabelViewModel>().loadLabels(userId),
-        ]);
-      } catch (e) {
-        // Continue even if some data fails to load
-        debugPrint('Splash data load error: $e');
-      }
-
+      await bootstrapUserSession(context, userId);
       if (!mounted) return;
 
-      // Start real-time listeners
-      context.read<ProjectViewModel>().listenToProjects(userId);
-      context.read<LabelViewModel>().listenToLabels(userId);
-      context.read<NoteViewModel>().listenToNotes(userId);
-
-      // One-shot migration: re-arm any reminders that were scheduled by the
-      // old Future.delayed-based implementation through the new
-      // zonedSchedule scheduler. No-op when tasks are empty (cold cache) so
-      // it can run again on the next launch when data is warm. Keyed per
-      // user, so a different account on this device gets its own one-shot.
-      // Fire-and-forget — if rescheduling stalls (network, permissions),
-      // we don't want to block routing to the home screen.
-      // ignore: unawaited_futures
-      NotificationService().migrateLegacyRemindersIfNeeded(
-        userId: userId,
-        tasks: context.read<TaskViewModel>().tasks,
-      );
+      // One-time cross-VM wiring (must only run once per app start, not on
+      // every login — listeners would otherwise pile up). Fans shared-list
+      // member changes into TaskViewModel and UserProfileViewModel.
       final sharedListVM = context.read<SharedListViewModel>();
-      sharedListVM.listen(userId);
-      // Wire SharedListViewModel changes -> TaskViewModel so shared tasks
-      // are streamed alongside personal tasks. Also fan out member ids to
-      // UserProfileViewModel so names/avatars resolve in the UI.
       final taskVM = context.read<TaskViewModel>();
       final profileVM = context.read<UserProfileViewModel>();
-      // Seed cache with the current user.
-      if (authVM.user != null) profileVM.upsertSelf(authVM.user!);
       sharedListVM.addListener(() {
         taskVM.setSharedListIds(sharedListVM.memberListIds);
         final allMemberIds = <String>{};
@@ -121,7 +85,6 @@ class _SplashScreenState extends State<SplashScreen>
         }
         profileVM.ensureLoaded(allMemberIds);
       });
-      taskVM.setSharedListIds(sharedListVM.memberListIds);
 
       if (!mounted) return;
 
@@ -211,15 +174,24 @@ class _SplashScreenState extends State<SplashScreen>
                 ScaleTransition(
                   scale: _scaleAnim,
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    width: 128,
+                    height: 128,
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primaryContainer,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.primary
+                              .withValues(alpha: 0.25),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
-                    child: Icon(
-                      Icons.task_alt,
-                      size: 64,
-                      color: theme.colorScheme.onPrimaryContainer,
+                    child: Image.asset(
+                      'assets/images/logos/logo.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),

@@ -8,6 +8,7 @@ import '../../viewmodels/category_viewmodel.dart';
 import '../../viewmodels/home_filter_intent.dart';
 import '../../viewmodels/project_viewmodel.dart';
 import '../../viewmodels/task_viewmodel.dart';
+import '../widgets/app_asset_icon.dart';
 import '../widgets/app_background.dart';
 import '../widgets/quick_add_sheet.dart';
 import 'dashboard_screen.dart';
@@ -117,7 +118,7 @@ class _MainScreenState extends State<MainScreen> {
               ),
               // Kanban board button
               IconButton(
-                icon: const Icon(Icons.view_kanban_outlined),
+                icon: const AppAssetIcon(AppIcons.checklist),
                 tooltip: l.get('kanbanBoard'),
                 onPressed: () => context.push('/kanban'),
               ),
@@ -129,12 +130,12 @@ class _MainScreenState extends State<MainScreen> {
               ),
               // Pomodoro timer button
               IconButton(
-                icon: const Icon(Icons.timer_outlined),
+                icon: const AppAssetIcon(AppIcons.focus),
                 tooltip: l.get('pomodoro'),
                 onPressed: () => context.push('/pomodoro'),
               ),
               IconButton(
-                icon: const Icon(Icons.settings),
+                icon: const AppAssetIcon(AppIcons.setting),
                 onPressed: () => context.push('/settings'),
               ),
             ],
@@ -167,23 +168,23 @@ class _MainScreenState extends State<MainScreen> {
                 label: l.get('dashboard'),
               ),
               NavigationDestination(
-                icon: const Icon(Icons.task_alt_outlined),
-                selectedIcon: const Icon(Icons.task_alt),
+                icon: const AppAssetIcon(AppIcons.task),
+                selectedIcon: const AppAssetIcon(AppIcons.task),
                 label: l.get('tasks'),
               ),
               NavigationDestination(
-                icon: const Icon(Icons.folder_outlined),
-                selectedIcon: const Icon(Icons.folder),
+                icon: const AppAssetIcon(AppIcons.project),
+                selectedIcon: const AppAssetIcon(AppIcons.project),
                 label: l.get('projects'),
               ),
               NavigationDestination(
-                icon: const Icon(Icons.calendar_month_outlined),
-                selectedIcon: const Icon(Icons.calendar_month),
+                icon: const AppAssetIcon(AppIcons.calendar),
+                selectedIcon: const AppAssetIcon(AppIcons.calendar),
                 label: l.get('calendar'),
               ),
               NavigationDestination(
-                icon: const Icon(Icons.bar_chart_outlined),
-                selectedIcon: const Icon(Icons.bar_chart),
+                icon: const AppAssetIcon(AppIcons.statistic),
+                selectedIcon: const AppAssetIcon(AppIcons.statistic),
                 label: l.get('statistics'),
               ),
               NavigationDestination(
@@ -296,31 +297,31 @@ class _AppDrawer extends StatelessWidget {
             // Tabs.
             _DrawerSection(label: 'Navigate'),
             _DrawerTile(
-              icon: Icons.dashboard_outlined,
+              icon: const Icon(Icons.dashboard_outlined),
               label: l.get('dashboard'),
               selected: currentIndex == 0,
               onTap: () => onPickTab(0),
             ),
             _DrawerTile(
-              icon: Icons.task_alt_outlined,
+              icon: const AppAssetIcon(AppIcons.task),
               label: l.get('tasks'),
               selected: currentIndex == 1,
               onTap: () => onPickTab(1),
             ),
             _DrawerTile(
-              icon: Icons.folder_outlined,
+              icon: const AppAssetIcon(AppIcons.project),
               label: l.get('projects'),
               selected: currentIndex == 2,
               onTap: () => onPickTab(2),
             ),
             _DrawerTile(
-              icon: Icons.calendar_month_outlined,
+              icon: const AppAssetIcon(AppIcons.calendar),
               label: l.get('calendar'),
               selected: currentIndex == 3,
               onTap: () => onPickTab(3),
             ),
             _DrawerTile(
-              icon: Icons.bar_chart_outlined,
+              icon: const AppAssetIcon(AppIcons.statistic),
               label: l.get('statistics'),
               selected: currentIndex == 4,
               onTap: () => onPickTab(4),
@@ -331,7 +332,7 @@ class _AppDrawer extends StatelessWidget {
             // Tools — separate routes outside the bottom-nav.
             _DrawerSection(label: 'Tools'),
             _DrawerTile(
-              icon: Icons.search,
+              icon: const Icon(Icons.search),
               label: 'Search',
               onTap: () {
                 Navigator.pop(context);
@@ -339,7 +340,7 @@ class _AppDrawer extends StatelessWidget {
               },
             ),
             _DrawerTile(
-              icon: Icons.sticky_note_2_outlined,
+              icon: const Icon(Icons.sticky_note_2_outlined),
               label: 'Notes',
               onTap: () {
                 Navigator.pop(context);
@@ -347,7 +348,7 @@ class _AppDrawer extends StatelessWidget {
               },
             ),
             _DrawerTile(
-              icon: Icons.view_kanban_outlined,
+              icon: const AppAssetIcon(AppIcons.checklist),
               label: l.get('kanbanBoard'),
               onTap: () {
                 Navigator.pop(context);
@@ -355,7 +356,7 @@ class _AppDrawer extends StatelessWidget {
               },
             ),
             _DrawerTile(
-              icon: Icons.timer_outlined,
+              icon: const AppAssetIcon(AppIcons.focus),
               label: l.get('pomodoro'),
               onTap: () {
                 Navigator.pop(context);
@@ -363,7 +364,7 @@ class _AppDrawer extends StatelessWidget {
               },
             ),
             _DrawerTile(
-              icon: Icons.workspaces_outline,
+              icon: const Icon(Icons.workspaces_outline),
               label: 'Shared lists',
               onTap: () {
                 Navigator.pop(context);
@@ -379,8 +380,7 @@ class _AppDrawer extends StatelessWidget {
                     .where((t) => t.projectId == p.id)
                     .length;
                 return _DrawerTile(
-                  icon: Icons.circle,
-                  iconColor: p.color,
+                  icon: Icon(Icons.circle, color: p.color, size: 20),
                   label: p.name,
                   trailing: _CountChip(count: count),
                   onTap: () {
@@ -400,8 +400,7 @@ class _AppDrawer extends StatelessWidget {
               ...categoryVM.categories.map((c) {
                 final count = categoryCounts[c.name] ?? 0;
                 return _DrawerTile(
-                  icon: c.icon,
-                  iconColor: c.color,
+                  icon: Icon(c.icon, color: c.color, size: 20),
                   label: c.name,
                   trailing: _CountChip(count: count),
                   onTap: () {
@@ -417,7 +416,7 @@ class _AppDrawer extends StatelessWidget {
 
             const Divider(),
             _DrawerTile(
-              icon: Icons.settings_outlined,
+              icon: const AppAssetIcon(AppIcons.setting),
               label: l.get('settings'),
               onTap: () {
                 Navigator.pop(context);
@@ -425,7 +424,7 @@ class _AppDrawer extends StatelessWidget {
               },
             ),
             _DrawerTile(
-              icon: Icons.help_outline,
+              icon: const Icon(Icons.help_outline),
               label: l.get('helpSupport'),
               onTap: () {
                 Navigator.pop(context);
@@ -461,9 +460,8 @@ class _DrawerSection extends StatelessWidget {
 }
 
 class _DrawerTile extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String label;
-  final Color? iconColor;
   final bool selected;
   final Widget? trailing;
   final VoidCallback? onTap;
@@ -471,7 +469,6 @@ class _DrawerTile extends StatelessWidget {
   const _DrawerTile({
     required this.icon,
     required this.label,
-    this.iconColor,
     this.selected = false,
     this.trailing,
     this.onTap,
@@ -480,14 +477,19 @@ class _DrawerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Inject size + selected/unselected color via IconTheme so both Material
+    // Icons and AppAssetIcon (which reads IconTheme) tint correctly without
+    // touching call sites. An inner Icon/AppAssetIcon that sets `color`
+    // explicitly (e.g. project dots) still wins.
     return ListTile(
-      leading: Icon(
-        icon,
-        size: 20,
-        color: iconColor ??
-            (selected
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurfaceVariant),
+      leading: IconTheme.merge(
+        data: IconThemeData(
+          size: 20,
+          color: selected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.onSurfaceVariant,
+        ),
+        child: icon,
       ),
       title: Text(
         label,

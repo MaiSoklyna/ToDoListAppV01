@@ -5,6 +5,7 @@ import '../../utils/app_localizations.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/category_viewmodel.dart';
 import '../../viewmodels/label_viewmodel.dart';
+import '../../viewmodels/note_viewmodel.dart';
 import '../../viewmodels/project_viewmodel.dart';
 import '../../viewmodels/shared_list_viewmodel.dart';
 import '../../viewmodels/task_viewmodel.dart';
@@ -175,6 +176,7 @@ class ProfileScreen extends StatelessWidget {
                     context.read<CategoryViewModel>().reset();
                     context.read<SharedListViewModel>().reset();
                     context.read<UserProfileViewModel>().reset();
+                    context.read<NoteViewModel>().reset();
                     await authVM.signOut();
                     if (context.mounted) context.go('/login');
                   }

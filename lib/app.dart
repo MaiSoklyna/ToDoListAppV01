@@ -30,8 +30,8 @@ class _TaskMasterAppState extends State<TaskMasterApp> {
     return MaterialApp.router(
       title: 'TaskMaster Pro',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme(settingsVM.locale),
+      darkTheme: AppTheme.darkTheme(settingsVM.locale),
       themeMode: settingsVM.themeMode,
       locale: settingsVM.locale,
       supportedLocales: const [

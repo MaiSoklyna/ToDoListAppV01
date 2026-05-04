@@ -37,6 +37,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     List<Task> tasks;
     switch (_filter) {
+      case 'all':
+        tasks = List.from(taskVM.tasks);
+        break;
       case 'active':
         tasks = taskVM.activeTasks;
         break;
@@ -847,7 +850,7 @@ class _SectionHeader extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
             AnimatedRotation(
@@ -900,12 +903,15 @@ class _SectionHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Material(
-      color: Colors.transparent,
-      // Subtle shadow appears once content scrolls under the pinned header
-      // so it visually separates from the list below.
-      elevation: overlapsContent ? 2 : 0,
-      child: child,
+    return SizedBox(
+      height: _height,
+      child: Material(
+        color: Colors.transparent,
+        // Subtle shadow appears once content scrolls under the pinned header
+        // so it visually separates from the list below.
+        elevation: overlapsContent ? 2 : 0,
+        child: child,
+      ),
     );
   }
 

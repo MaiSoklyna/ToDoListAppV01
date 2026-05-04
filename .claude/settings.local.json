@@ -11,7 +11,8 @@
       "Bash(flutter pub *)",
       "Bash(firebase login:list *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(awk {print NR\": \"length\\($0\\)\" chars\"} *)"
     ]
   }
 }

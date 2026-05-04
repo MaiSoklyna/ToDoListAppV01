@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_localizations.dart';
+import '../../utils/user_session_bootstrap.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -47,7 +48,14 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (success && mounted) {
-      context.go('/home');
+      // Load this user's data + start per-user Firestore listeners before
+      // showing /home. Without this, the home screen reuses whatever was
+      // last loaded (= the previous account's data) until the app restarts.
+      final userId = context.read<AuthViewModel>().user?.uid;
+      if (userId != null) {
+        await bootstrapUserSession(context, userId);
+      }
+      if (mounted) context.go('/home');
     }
   }
 
@@ -78,10 +86,26 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.task_alt,
-                    size: 72,
-                    color: theme.colorScheme.primary,
+                  Container(
+                    width: 96,
+                    height: 96,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.primary
+                              .withValues(alpha: 0.2),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      'assets/images/logos/logo.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(

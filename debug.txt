@@ -1,0 +1,84 @@
+Running Gradle task 'assembleDebug'...
+√ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...
+D/FlutterJNI( 5596): Beginning load of flutter...
+D/FlutterJNI( 5596): flutter (null) was loaded normally!
+I/flutter ( 5596): [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+I/ple.todolistapp( 5596): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported,test-api) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+I/ple.todolistapp( 5596): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+I/ple.todolistapp( 5596): hiddenapi: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+I/ple.todolistapp( 5596): hiddenapi: Accessing hidden method Landroid/util/LongArray;->get(I)J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+Debug service listening on ws://127.0.0.1:51242/YdEEx200aB0=/ws
+Syncing files to device sdk gphone64 x86 64...
+D/FlutterRenderer( 5596): Width is zero. 0,0
+D/CompatChangeReporter( 5596): Compat change id reported: 377864165; UID 10235; state: ENABLED
+W/HWUI    ( 5596): Unknown dataspace 0
+D/WindowOnBackDispatcher( 5596): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@5bbf964
+I/WindowExtensionsImpl( 5596): Initializing Window Extensions, vendor API level=9, activity embedding enabled=true
+D/VRI[MainActivity]( 5596): WindowInsets changed: 1080x2400 statusBars:[0,63,0,0] navigationBars:[0,0,0,63] mandatorySystemGestures:[0,63,0,84] 
+D/FlutterRenderer( 5596): Width is zero. 0,0
+D/FlutterRenderer( 5596): Width is zero. 0,0
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+I/ple.todolistapp( 5596): Compiler allocated 5200KB to compile void android.view.ViewRootImpl.performTraversals()
+D/ProfileInstaller( 5596): Installing profile for com.example.todolistapp
+I/Choreographer( 5596): Skipped 87 frames!  The application may be doing too much work on its main thread.
+I/HWUI    ( 5596): Using FreeType backend (prop=Auto)
+D/WindowLayoutComponentImpl( 5596): Register WindowLayoutInfoListener on Context=com.example.todolistapp.MainActivity@71f2e71, of which baseContext=android.app.ContextImpl@e645348
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+W/ple.todolistapp( 5596): userfaultfd: MOVE ioctl seems unsupported: Try again
+I/Choreographer( 5596): Skipped 121 frames!  The application may be doing too much work on its main thread.
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+D/InsetsController( 5596): hide(ime())
+I/ImeTracker( 5596): com.example.todolistapp:8c14d74e: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+D/WindowOnBackDispatcher( 5596): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@eadfffd
+D/WindowOnBackDispatcher( 5596): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@5bbf964
+I/ImeTracker( 5596): com.example.todolistapp:ee87560b: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
+D/InsetsController( 5596): show(ime())
+D/InsetsController( 5596): Setting requestedVisibleTypes to 511 (was 503)
+D/InputConnectionAdaptor( 5596): The input method toggled cursor monitoring on
+I/ImeTracker( 5596): com.example.todolistapp:e4cdfd48: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
+D/InsetsController( 5596): show(ime())
+I/ImeTracker( 5596): com.example.todolistapp:e4cdfd48: onCancelled at PHASE_CLIENT_REPORT_REQUESTED_VISIBLE_TYPES
+D/WindowOnBackDispatcher( 5596): setTopOnBackInvokedCallback (unwrapped): android.view.ImeBackAnimationController@613431
+W/InteractionJankMonitor( 5596): Initializing without READ_DEVICE_CONFIG permission. enabled=false, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.example.todolistapp
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+I/ImeTracker( 5596): com.example.todolistapp:ee87560b: onShown
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+D/FlutterJNI( 5596): Sending viewport metrics to the engine.
+I/ImeTracker( 5596): com.example.todolistapp:35a059ce: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
+D/InsetsController( 5596): show(ime())
+I/ImeTracker( 5596): com.example.todolistapp:35a059ce: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+D/InputConnectionAdaptor( 5596): The input method toggled cursor monitoring on
+I/FirebaseAuth( 5596): Logging in as nadrayoky001@gmail.com with empty reCAPTCHA token
+W/System  ( 5596): Ignoring header X-Firebase-Locale because its value was null.
+E/RecaptchaCallWrapper( 5596): Initial task failed for action RecaptchaAction(action=signInWithPassword)with exception - A network error (such as timeout, interrupted connection or unreachable host) has occurred.
+ debug 
+ ======== Exception caught by rendering library =====================================================
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 9.1 pixels on the right.
+
+The relevant error-causing widget was: 
+  Row Row:file:///D:/ToDoListApp/lib/app.dart:72:22
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be seen. If the content is legitimately bigger than the available space, consider clipping it with a ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex, like a ListView.
+
+The specific RenderFlex in question is: RenderFlex#9cfe5 relayoutBoundary=up6 OVERFLOWING
+...  parentData: offset=Offset(16.0, 8.0) (can use size)
+...  constraints: BoxConstraints(w=379.4, 0.0<=h<=Infinity)
+...  size: Size(379.4, 22.0)
+...  direction: horizontal
+...  mainAxisAlignment: start
+...  mainAxisSize: max
+...  crossAxisAlignment: center
+...  textDirection: ltr
+...  verticalDirection: down
+...  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢
