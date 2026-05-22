@@ -190,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final l = AppLocalizations.of(context);
 
-    final activeDrawerFilter = _drawerFilterLabel(_filter);
+    final activeDrawerFilter = _drawerFilterLabel(_filter, l);
 
     return Column(
       children: [
@@ -311,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 8),
                       FilterChip(
                         avatar: const Icon(Icons.today, size: 16),
-                        label: const Text('Today'),
+                        label: Text(l.get('today')),
                         selected: _filter == 'today',
                         onSelected: (_) =>
                             setState(() => _filter = 'today'),
@@ -319,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 8),
                       FilterChip(
                         avatar: const Icon(Icons.priority_high, size: 16),
-                        label: const Text('Important'),
+                        label: Text(l.get('important')),
                         selected: _filter == 'important',
                         onSelected: (_) =>
                             setState(() => _filter = 'important'),
@@ -327,7 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 8),
                       FilterChip(
                         avatar: const Icon(Icons.date_range, size: 16),
-                        label: const Text('This week'),
+                        label: Text(l.get('thisWeek')),
                         selected: _filter == 'thisWeek',
                         onSelected: (_) =>
                             setState(() => _filter = 'thisWeek'),
@@ -348,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 8),
                       FilterChip(
                         avatar: const Icon(Icons.person_pin, size: 16),
-                        label: const Text('Assigned to me'),
+                        label: Text(l.get('assignedToMe')),
                         selected: _filter == 'assignedToMe',
                         onSelected: (_) =>
                             setState(() => _filter = 'assignedToMe'),
@@ -533,6 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _TodayHeader(
             activeToday: groups[_DateGroup.today]?.length ?? 0,
             overdue: groups[_DateGroup.overdue]?.length ?? 0,
+            l: l,
           ),
         ),
       ),
@@ -665,9 +666,10 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Human-readable label for category:/project: filters set via the drawer.
   /// Returns null when the active filter has its own visible chip (so we
   /// don't double-up on UI affordances).
-  String? _drawerFilterLabel(String filter) {
+  String? _drawerFilterLabel(String filter, AppLocalizations l) {
     if (filter.startsWith('category:')) {
-      return 'Category · ${filter.substring('category:'.length)}';
+      return l.format('categoryFilter',
+          {'name': filter.substring('category:'.length)});
     }
     if (filter.startsWith('project:')) {
       final id = filter.substring('project:'.length);
@@ -677,7 +679,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .where((p) => p.id == id)
           .map((p) => p.name)
           .firstOrNull;
-      return 'Project · ${name ?? id}';
+      return l.format('projectFilter', {'name': name ?? id});
     }
     return null;
   }
@@ -727,17 +729,17 @@ class _HomeScreenState extends State<HomeScreen> {
   String _sectionLabel(_DateGroup group, AppLocalizations l) {
     switch (group) {
       case _DateGroup.overdue:
-        return 'Overdue';
+        return l.get('overdue');
       case _DateGroup.today:
         return l.get('today');
       case _DateGroup.tomorrow:
         return l.get('tomorrow');
       case _DateGroup.thisWeek:
-        return 'This week';
+        return l.get('thisWeek');
       case _DateGroup.later:
-        return 'Later';
+        return l.get('later');
       case _DateGroup.noDate:
-        return 'No date';
+        return l.get('noDate');
     }
   }
 
@@ -785,8 +787,13 @@ enum _DateGroup { overdue, today, tomorrow, thisWeek, later, noDate }
 class _TodayHeader extends StatelessWidget {
   final int activeToday;
   final int overdue;
+  final AppLocalizations l;
 
-  const _TodayHeader({required this.activeToday, required this.overdue});
+  const _TodayHeader({
+    required this.activeToday,
+    required this.overdue,
+    required this.l,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -795,9 +802,13 @@ class _TodayHeader extends StatelessWidget {
     final dateLabel = DateFormat('EEEE, MMMM d').format(now);
 
     final bits = <String>[];
-    bits.add(activeToday == 1 ? '1 task today' : '$activeToday tasks today');
+    bits.add(activeToday == 1
+        ? l.get('tasksTodayOne')
+        : l.format('tasksTodayOther', {'count': activeToday}));
     if (overdue > 0) {
-      bits.add(overdue == 1 ? '1 overdue' : '$overdue overdue');
+      bits.add(overdue == 1
+          ? l.get('overdueOne')
+          : l.format('overdueOther', {'count': overdue}));
     }
 
     return Padding(

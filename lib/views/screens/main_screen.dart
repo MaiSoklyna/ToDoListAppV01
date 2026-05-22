@@ -8,7 +8,6 @@ import '../../viewmodels/category_viewmodel.dart';
 import '../../viewmodels/home_filter_intent.dart';
 import '../../viewmodels/project_viewmodel.dart';
 import '../../viewmodels/task_viewmodel.dart';
-import '../widgets/app_asset_icon.dart';
 import '../widgets/app_background.dart';
 import '../widgets/quick_add_sheet.dart';
 import 'dashboard_screen.dart';
@@ -107,35 +106,35 @@ class _MainScreenState extends State<MainScreen> {
               // Search button
               IconButton(
                 icon: const Icon(Icons.search),
-                tooltip: 'Search',
+                tooltip: l.get('search'),
                 onPressed: () => context.push('/search'),
               ),
               // Shared lists button
               IconButton(
                 icon: const Icon(Icons.workspaces_outline),
-                tooltip: 'Shared lists',
+                tooltip: l.get('sharedLists'),
                 onPressed: () => context.push('/shared-lists'),
               ),
               // Kanban board button
               IconButton(
-                icon: const AppAssetIcon(AppIcons.checklist),
+                icon: const Icon(Icons.view_kanban_outlined),
                 tooltip: l.get('kanbanBoard'),
                 onPressed: () => context.push('/kanban'),
               ),
               // Notes button
               IconButton(
                 icon: const Icon(Icons.sticky_note_2_outlined),
-                tooltip: 'Notes',
+                tooltip: l.get('notes'),
                 onPressed: () => context.push('/notes'),
               ),
               // Pomodoro timer button
               IconButton(
-                icon: const AppAssetIcon(AppIcons.focus),
+                icon: const Icon(Icons.timer_outlined),
                 tooltip: l.get('pomodoro'),
                 onPressed: () => context.push('/pomodoro'),
               ),
               IconButton(
-                icon: const AppAssetIcon(AppIcons.setting),
+                icon: const Icon(Icons.settings),
                 onPressed: () => context.push('/settings'),
               ),
             ],
@@ -165,26 +164,26 @@ class _MainScreenState extends State<MainScreen> {
               NavigationDestination(
                 icon: const Icon(Icons.dashboard_outlined),
                 selectedIcon: const Icon(Icons.dashboard),
-                label: l.get('dashboard'),
+                label: l.get('dashb'),
               ),
               NavigationDestination(
-                icon: const AppAssetIcon(AppIcons.task),
-                selectedIcon: const AppAssetIcon(AppIcons.task),
+                icon: const Icon(Icons.task_alt_outlined),
+                selectedIcon: const Icon(Icons.task_alt),
                 label: l.get('tasks'),
               ),
               NavigationDestination(
-                icon: const AppAssetIcon(AppIcons.project),
-                selectedIcon: const AppAssetIcon(AppIcons.project),
+                icon: const Icon(Icons.folder_outlined),
+                selectedIcon: const Icon(Icons.folder),
                 label: l.get('projects'),
               ),
               NavigationDestination(
-                icon: const AppAssetIcon(AppIcons.calendar),
-                selectedIcon: const AppAssetIcon(AppIcons.calendar),
+                icon: const Icon(Icons.calendar_month_outlined),
+                selectedIcon: const Icon(Icons.calendar_month),
                 label: l.get('calendar'),
               ),
               NavigationDestination(
-                icon: const AppAssetIcon(AppIcons.statistic),
-                selectedIcon: const AppAssetIcon(AppIcons.statistic),
+                icon: const Icon(Icons.bar_chart_outlined),
+                selectedIcon: const Icon(Icons.bar_chart),
                 label: l.get('statistics'),
               ),
               NavigationDestination(
@@ -295,7 +294,7 @@ class _AppDrawer extends StatelessWidget {
             ),
 
             // Tabs.
-            _DrawerSection(label: 'Navigate'),
+            _DrawerSection(label: l.get('navigate')),
             _DrawerTile(
               icon: const Icon(Icons.dashboard_outlined),
               label: l.get('dashboard'),
@@ -303,25 +302,25 @@ class _AppDrawer extends StatelessWidget {
               onTap: () => onPickTab(0),
             ),
             _DrawerTile(
-              icon: const AppAssetIcon(AppIcons.task),
+              icon: const Icon(Icons.task_alt_outlined),
               label: l.get('tasks'),
               selected: currentIndex == 1,
               onTap: () => onPickTab(1),
             ),
             _DrawerTile(
-              icon: const AppAssetIcon(AppIcons.project),
+              icon: const Icon(Icons.folder_outlined),
               label: l.get('projects'),
               selected: currentIndex == 2,
               onTap: () => onPickTab(2),
             ),
             _DrawerTile(
-              icon: const AppAssetIcon(AppIcons.calendar),
+              icon: const Icon(Icons.calendar_month_outlined),
               label: l.get('calendar'),
               selected: currentIndex == 3,
               onTap: () => onPickTab(3),
             ),
             _DrawerTile(
-              icon: const AppAssetIcon(AppIcons.statistic),
+              icon: const Icon(Icons.bar_chart_outlined),
               label: l.get('statistics'),
               selected: currentIndex == 4,
               onTap: () => onPickTab(4),
@@ -330,10 +329,10 @@ class _AppDrawer extends StatelessWidget {
             const Divider(),
 
             // Tools — separate routes outside the bottom-nav.
-            _DrawerSection(label: 'Tools'),
+            _DrawerSection(label: l.get('tools')),
             _DrawerTile(
               icon: const Icon(Icons.search),
-              label: 'Search',
+              label: l.get('search'),
               onTap: () {
                 Navigator.pop(context);
                 context.push('/search');
@@ -341,14 +340,14 @@ class _AppDrawer extends StatelessWidget {
             ),
             _DrawerTile(
               icon: const Icon(Icons.sticky_note_2_outlined),
-              label: 'Notes',
+              label: l.get('notes'),
               onTap: () {
                 Navigator.pop(context);
                 context.push('/notes');
               },
             ),
             _DrawerTile(
-              icon: const AppAssetIcon(AppIcons.checklist),
+              icon: const Icon(Icons.view_kanban_outlined),
               label: l.get('kanbanBoard'),
               onTap: () {
                 Navigator.pop(context);
@@ -356,7 +355,7 @@ class _AppDrawer extends StatelessWidget {
               },
             ),
             _DrawerTile(
-              icon: const AppAssetIcon(AppIcons.focus),
+              icon: const Icon(Icons.timer_outlined),
               label: l.get('pomodoro'),
               onTap: () {
                 Navigator.pop(context);
@@ -365,7 +364,7 @@ class _AppDrawer extends StatelessWidget {
             ),
             _DrawerTile(
               icon: const Icon(Icons.workspaces_outline),
-              label: 'Shared lists',
+              label: l.get('sharedLists'),
               onTap: () {
                 Navigator.pop(context);
                 context.push('/shared-lists');
@@ -396,7 +395,7 @@ class _AppDrawer extends StatelessWidget {
 
             if (categoryVM.categories.isNotEmpty) ...[
               const Divider(),
-              _DrawerSection(label: 'Categories'),
+              _DrawerSection(label: l.get('categories')),
               ...categoryVM.categories.map((c) {
                 final count = categoryCounts[c.name] ?? 0;
                 return _DrawerTile(
@@ -416,7 +415,7 @@ class _AppDrawer extends StatelessWidget {
 
             const Divider(),
             _DrawerTile(
-              icon: const AppAssetIcon(AppIcons.setting),
+              icon: const Icon(Icons.settings_outlined),
               label: l.get('settings'),
               onTap: () {
                 Navigator.pop(context);
@@ -477,10 +476,9 @@ class _DrawerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Inject size + selected/unselected color via IconTheme so both Material
-    // Icons and AppAssetIcon (which reads IconTheme) tint correctly without
-    // touching call sites. An inner Icon/AppAssetIcon that sets `color`
-    // explicitly (e.g. project dots) still wins.
+    // Inject size + selected/unselected color via IconTheme so Material icons
+    // tint correctly without touching call sites. An inner Icon that sets
+    // `color` explicitly (e.g. project dots) still wins.
     return ListTile(
       leading: IconTheme.merge(
         data: IconThemeData(

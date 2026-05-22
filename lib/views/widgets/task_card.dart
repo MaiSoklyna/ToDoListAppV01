@@ -88,6 +88,8 @@ class TaskCard extends StatelessWidget {
                         task.emoji != null
                             ? '${task.emoji}  ${task.title}'
                             : task.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleSmall?.copyWith(
                           decoration: task.isCompleted
                               ? TextDecoration.lineThrough
@@ -107,68 +109,49 @@ class TaskCard extends StatelessWidget {
                           ),
                         ),
                       const SizedBox(height: 4),
-                      Row(
+                      // Wrap (not Row) so chips/icons flow to the next line
+                      // when a task has many flags — Row with no constraint
+                      // here was the source of the RIGHT OVERFLOWED error.
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           _TagChip(label: task.category, theme: theme),
-                          if (task.dueDate != null) ...[
-                            const SizedBox(width: 6),
-                            Icon(Icons.calendar_today,
-                                size: 12,
-                                color: _isOverdue(task.dueDate!)
-                                    ? theme.colorScheme.error
-                                    : theme.colorScheme.onSurfaceVariant),
-                            const SizedBox(width: 2),
-                            Text(
-                              _formatDate(task.dueDate!, l),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: _isOverdue(task.dueDate!)
-                                    ? theme.colorScheme.error
-                                    : theme.colorScheme.onSurfaceVariant,
-                              ),
+                          if (task.dueDate != null)
+                            _MetaPair(
+                              icon: Icons.calendar_today,
+                              label: _formatDate(task.dueDate!, l),
+                              color: _isOverdue(task.dueDate!)
+                                  ? theme.colorScheme.error
+                                  : theme.colorScheme.onSurfaceVariant,
+                              theme: theme,
                             ),
-                          ],
-                          if (task.subTasks.isNotEmpty) ...[
-                            const SizedBox(width: 6),
-                            Icon(Icons.checklist,
-                                size: 12,
-                                color: theme.colorScheme.onSurfaceVariant),
-                            const SizedBox(width: 2),
-                            Text(
-                              '${task.subTasks.where((s) => s.isCompleted).length}/${task.subTasks.length}',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
+                          if (task.subTasks.isNotEmpty)
+                            _MetaPair(
+                              icon: Icons.checklist,
+                              label:
+                                  '${task.subTasks.where((s) => s.isCompleted).length}/${task.subTasks.length}',
+                              color: theme.colorScheme.onSurfaceVariant,
+                              theme: theme,
                             ),
-                          ],
-                          if (task.recurrenceRule != null) ...[
-                            const SizedBox(width: 6),
+                          if (task.recurrenceRule != null)
                             Icon(Icons.repeat,
                                 size: 12,
                                 color: theme.colorScheme.primary),
-                          ],
-                          if (task.reminders.isNotEmpty) ...[
-                            const SizedBox(width: 6),
-                            Icon(Icons.notifications_active,
-                                size: 12,
-                                color: theme.colorScheme.primary),
-                            const SizedBox(width: 2),
-                            Text(
-                              '${task.reminders.length}',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                              ),
+                          if (task.reminders.isNotEmpty)
+                            _MetaPair(
+                              icon: Icons.notifications_active,
+                              label: '${task.reminders.length}',
+                              color: theme.colorScheme.primary,
+                              theme: theme,
                             ),
-                          ],
-                          if (task.attachments.isNotEmpty) ...[
-                            const SizedBox(width: 6),
+                          if (task.attachments.isNotEmpty)
                             Icon(Icons.attach_file,
                                 size: 12,
                                 color: theme.colorScheme.onSurfaceVariant),
-                          ],
-                          if (task.assigneeId != null) ...[
-                            const SizedBox(width: 6),
+                          if (task.assigneeId != null)
                             _AssigneeAvatar(uid: task.assigneeId!),
-                          ],
                         ],
                       ),
                     ],
@@ -235,6 +218,35 @@ class _AssigneeAvatar extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _MetaPair extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final ThemeData theme;
+
+  const _MetaPair({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 12, color: color),
+        const SizedBox(width: 2),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(color: color),
+        ),
+      ],
     );
   }
 }

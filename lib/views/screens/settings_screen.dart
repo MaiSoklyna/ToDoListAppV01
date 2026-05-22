@@ -133,7 +133,7 @@ class SettingsScreen extends StatelessWidget {
             leading: const Icon(Icons.category_outlined),
             title: Text(l.get('category')),
             subtitle: Text(
-                '${context.watch<CategoryViewModel>().categories.length} categories'),
+                '${context.watch<CategoryViewModel>().categories.length} ${l.get('categories').toLowerCase()}'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showCategoriesManager(context),
           ),
@@ -171,9 +171,8 @@ class SettingsScreen extends StatelessWidget {
           // Restore from JSON backup
           ListTile(
             leading: const Icon(Icons.restore_outlined),
-            title: const Text('Restore from backup'),
-            subtitle:
-                const Text('Append items from a previous JSON backup'),
+            title: Text(l.get('restoreBackup')),
+            subtitle: Text(l.get('restoreBackupDesc')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showRestoreDialog(context),
           ),
@@ -205,8 +204,8 @@ class SettingsScreen extends StatelessWidget {
           // ---- New-task defaults ----
           ListTile(
             leading: const Icon(Icons.tune),
-            title: const Text('New-task defaults'),
-            subtitle: const Text('Applied when you create a task'),
+            title: Text(l.get('newTaskDefaults')),
+            subtitle: Text(l.get('newTaskDefaultsDesc')),
             dense: true,
           ),
           // Default priority
@@ -218,10 +217,10 @@ class SettingsScreen extends StatelessWidget {
                     child: Text(l.get('priority'),
                         style: theme.textTheme.bodyMedium)),
                 SegmentedButton<int>(
-                  segments: const [
-                    ButtonSegment(value: 1, label: Text('Low')),
-                    ButtonSegment(value: 2, label: Text('Med')),
-                    ButtonSegment(value: 3, label: Text('High')),
+                  segments: [
+                    ButtonSegment(value: 1, label: Text(l.get('low'))),
+                    ButtonSegment(value: 2, label: Text(l.get('priorityMed'))),
+                    ButtonSegment(value: 3, label: Text(l.get('high'))),
                   ],
                   selected: {settingsVM.defaultPriority},
                   showSelectedIcon: false,
@@ -239,9 +238,9 @@ class SettingsScreen extends StatelessWidget {
           // power users can still set custom reminders per-task.
           ListTile(
             leading: const Icon(Icons.alarm_outlined),
-            title: const Text('Default reminder'),
+            title: Text(l.get('defaultReminder')),
             subtitle: Text(_reminderOffsetLabel(
-                settingsVM.defaultReminderOffsetMinutes)),
+                settingsVM.defaultReminderOffsetMinutes, l)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showReminderOffsetPicker(context, settingsVM),
           ),
@@ -284,11 +283,11 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text(l.get('about')),
-            subtitle: const Text('TaskMaster Pro v1.0.0'),
+            subtitle: const Text('Focus365 v1.0.0'),
             onTap: () {
               showAboutDialog(
                 context: context,
-                applicationName: 'TaskMaster Pro',
+                applicationName: 'Focus365',
                 applicationVersion: '1.0.0',
                 applicationIcon: Icon(
                   Icons.task_alt,
@@ -297,7 +296,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 children: [
                   Text(
-                    'A full-featured task management app with Firebase integration, offline support, and multi-language support.',
+                    l.get('appDescription'),
                     style: theme.textTheme.bodyMedium,
                   ),
                 ],
@@ -474,6 +473,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showCategoriesManager(BuildContext context) {
+    final l = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -503,7 +503,7 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Text('Categories',
+                    Text(l.get('categories'),
                         style: Theme.of(context).textTheme.titleLarge),
                     const Spacer(),
                     IconButton(
@@ -527,7 +527,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       title: Text(cat.name),
                       subtitle:
-                          isBuiltIn ? const Text('Built-in') : null,
+                          isBuiltIn ? Text(l.get('builtIn')) : null,
                       trailing: isBuiltIn
                           ? null
                           : IconButton(
@@ -551,6 +551,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showCategoryDialog(BuildContext context, {TaskCategory? category}) {
+    final l = AppLocalizations.of(context);
     final nameCtrl = TextEditingController(text: category?.name ?? '');
     var selectedColorValue =
         category?.color.toARGB32() ?? Project.presetColors[4];
@@ -561,7 +562,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(isEditing ? 'Edit category' : 'Add category'),
+          title: Text(isEditing ? l.get('editCategory') : l.get('addCategory')),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -569,14 +570,14 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l.get('name'),
+                    border: const OutlineInputBorder(),
                   ),
                   textCapitalization: TextCapitalization.words,
                 ),
                 const SizedBox(height: 16),
-                const Text('Icon'),
+                Text(l.get('icon')),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -615,7 +616,7 @@ class SettingsScreen extends StatelessWidget {
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-                const Text('Color'),
+                Text(l.get('color')),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -653,7 +654,7 @@ class SettingsScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(l.get('cancel')),
             ),
             FilledButton(
               onPressed: () {
@@ -691,7 +692,7 @@ class SettingsScreen extends StatelessWidget {
                 }
                 Navigator.pop(ctx);
               },
-              child: const Text('Save'),
+              child: Text(l.get('save')),
             ),
           ],
         ),
@@ -754,9 +755,8 @@ class SettingsScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.code, color: Colors.blueGrey),
-              title: const Text('JSON backup'),
-              subtitle: const Text(
-                  'Full snapshot — tasks, projects, labels, notes'),
+              title: Text(l.get('jsonBackup')),
+              subtitle: Text(l.get('jsonBackupDesc')),
               onTap: () async {
                 Navigator.pop(ctx);
                 final tasks = context.read<TaskViewModel>().tasks;
@@ -798,6 +798,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _showRestoreDialog(BuildContext context) async {
+    final l = AppLocalizations.of(context);
     final exportService = ExportService();
     final backups = await exportService.listBackups();
     if (!context.mounted) return;
@@ -810,26 +811,26 @@ class SettingsScreen extends StatelessWidget {
     final action = await showDialog<_RestoreSelection>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: const Text('Restore from backup'),
+        title: Text(l.get('restoreBackup')),
         children: [
           SimpleDialogOption(
             onPressed: () =>
                 Navigator.pop(ctx, const _RestoreSelection.fromFilePicker()),
             child: Row(
-              children: const [
-                Icon(Icons.folder_open),
-                SizedBox(width: 12),
-                Expanded(child: Text('Pick a file from device…')),
+              children: [
+                const Icon(Icons.folder_open),
+                const SizedBox(width: 12),
+                Expanded(child: Text(l.get('pickFileFromDevice'))),
               ],
             ),
           ),
           if (backups.isNotEmpty) const Divider(),
           if (backups.isNotEmpty)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(24, 8, 24, 4),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
               child: Text(
-                'Recent backups',
-                style: TextStyle(
+                l.get('recentBackups'),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -887,9 +888,7 @@ class SettingsScreen extends StatelessWidget {
       if (p == null) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  "Couldn't read the selected file. Try a different location.")),
+          SnackBar(content: Text(l.get('cantReadFile'))),
         );
         return;
       }
@@ -903,18 +902,16 @@ class SettingsScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Restore this backup?'),
-        content: const Text(
-            'Existing items with the same id will be kept; only new items will be added. '
-            'This action cannot be undone.'),
+        title: Text(l.get('restoreThisBackup')),
+        content: Text(l.get('restoreWarning')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l.get('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Restore'),
+            child: Text(l.get('restoreAction')),
           ),
         ],
       ),
@@ -926,7 +923,7 @@ class SettingsScreen extends StatelessWidget {
     final uid = auth.user?.uid;
     if (uid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign in to restore a backup.')),
+        SnackBar(content: Text(l.get('signInToRestore'))),
       );
       return;
     }
@@ -961,29 +958,35 @@ class SettingsScreen extends StatelessWidget {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Restore failed: $e')),
+        SnackBar(
+            content: Text(l.format('restoreFailed', {'error': e.toString()}))),
       );
     }
   }
 
-  String _reminderOffsetLabel(int? minutes) {
-    if (minutes == null) return 'Off';
-    if (minutes == 0) return 'At due time';
+  String _reminderOffsetLabel(int? minutes, AppLocalizations l) {
+    if (minutes == null) return l.get('reminderOff');
+    if (minutes == 0) return l.get('reminderAtDue');
     if (minutes >= 1440 && minutes % 1440 == 0) {
       final days = minutes ~/ 1440;
-      return days == 1 ? '1 day before' : '$days days before';
+      return days == 1
+          ? l.get('reminderDayBeforeOne')
+          : l.format('reminderDayBeforeOther', {'n': days});
     }
     if (minutes >= 60 && minutes % 60 == 0) {
       final hours = minutes ~/ 60;
-      return hours == 1 ? '1 hour before' : '$hours hours before';
+      return hours == 1
+          ? l.get('reminderHourBeforeOne')
+          : l.format('reminderHourBeforeOther', {'n': hours});
     }
-    return '$minutes min before';
+    return l.format('reminderMinBefore', {'n': minutes});
   }
 
   Future<void> _showReminderOffsetPicker(
     BuildContext context,
     SettingsViewModel settingsVM,
   ) async {
+    final l = AppLocalizations.of(context);
     // Common offsets cover ~95% of realistic defaults. Custom-per-task
     // remains available via the dedicated reminders screen.
     // Wrapper distinguishes a user-chosen "Off" (null) from a dialog-
@@ -992,13 +995,13 @@ class SettingsScreen extends StatelessWidget {
     final picked = await showDialog<_OffsetPick>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: const Text('Default reminder'),
+        title: Text(l.get('defaultReminder')),
         children: presets
             .map((p) => SimpleDialogOption(
                   onPressed: () => Navigator.pop(ctx, _OffsetPick(p)),
                   child: Row(
                     children: [
-                      Expanded(child: Text(_reminderOffsetLabel(p))),
+                      Expanded(child: Text(_reminderOffsetLabel(p, l))),
                       if (p == settingsVM.defaultReminderOffsetMinutes)
                         Icon(Icons.check,
                             size: 18,
@@ -1018,10 +1021,11 @@ class SettingsScreen extends StatelessWidget {
     SettingsViewModel settingsVM,
     CategoryViewModel catVM,
   ) async {
+    final l = AppLocalizations.of(context);
     final picked = await showDialog<String>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: const Text('Default category'),
+        title: Text(l.get('defaultCategoryTitle')),
         children: catVM.categories
             .map((c) => SimpleDialogOption(
                   onPressed: () => Navigator.pop(ctx, c.name),

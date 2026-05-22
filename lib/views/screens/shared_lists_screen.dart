@@ -387,7 +387,7 @@ class _InviteCodeRow extends StatelessWidget {
             icon: const Icon(Icons.share),
             onPressed: () {
               SharePlus.instance.share(ShareParams(
-                text: 'Join "$listName" on TaskMaster Pro with code: $code',
+                text: 'Join "$listName" on Focus365 with code: $code',
               ));
             },
           ),

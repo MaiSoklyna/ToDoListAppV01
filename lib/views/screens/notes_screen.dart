@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/note.dart';
+import '../../utils/app_localizations.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/note_viewmodel.dart';
 
@@ -14,9 +15,10 @@ class NotesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final notesVM = context.watch<NoteViewModel>();
     final notes = notesVM.notes;
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notes')),
+      appBar: AppBar(title: Text(l.get('notes'))),
       body: notesVM.isLoading && notes.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : notes.isEmpty
@@ -70,6 +72,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -83,12 +86,12 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No notes yet',
+              l.get('noNotesYet'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Tap + to capture a quick thought.',
+              l.get('tapPlusToCapture'),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -107,6 +110,7 @@ class _NoteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final notesVM = context.read<NoteViewModel>();
     final color = Color(note.colorValue);
+    final l = AppLocalizations.of(context);
     return Material(
       color: color,
       borderRadius: BorderRadius.circular(12),
@@ -123,7 +127,7 @@ class _NoteCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      note.title.isEmpty ? 'Untitled' : note.title,
+                      note.title.isEmpty ? l.get('untitled') : note.title,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black87,
@@ -174,19 +178,20 @@ class _NoteCard extends StatelessWidget {
     BuildContext context,
     NoteViewModel notesVM,
   ) async {
+    final l = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete note?'),
-        content: const Text('This cannot be undone.'),
+        title: Text(l.get('deleteNoteQ')),
+        content: Text(l.get('thisCannotBeUndone')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l.get('cancel')),
           ),
           FilledButton.tonal(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: Text(l.get('delete')),
           ),
         ],
       ),
@@ -256,6 +261,7 @@ class _NoteEditorScreenState extends State<_NoteEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: Color(_colorValue),
       appBar: AppBar(
@@ -286,8 +292,8 @@ class _NoteEditorScreenState extends State<_NoteEditorScreen> {
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
-              decoration: const InputDecoration(
-                hintText: 'Title',
+              decoration: InputDecoration(
+                hintText: l.get('title'),
                 border: InputBorder.none,
               ),
               textCapitalization: TextCapitalization.sentences,
@@ -299,8 +305,8 @@ class _NoteEditorScreenState extends State<_NoteEditorScreen> {
               child: TextField(
                 controller: _bodyCtrl,
                 style: const TextStyle(color: Colors.black87, fontSize: 16),
-                decoration: const InputDecoration(
-                  hintText: 'Note',
+                decoration: InputDecoration(
+                  hintText: l.get('note'),
                   border: InputBorder.none,
                 ),
                 maxLines: null,

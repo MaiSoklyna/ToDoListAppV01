@@ -173,26 +173,12 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 ScaleTransition(
                   scale: _scaleAnim,
-                  child: Container(
-                    width: 128,
-                    height: 128,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.colorScheme.primary
-                              .withValues(alpha: 0.25),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Image.asset(
-                      'assets/images/logos/logo.png',
-                      fit: BoxFit.contain,
-                    ),
+                  child: Image.asset(
+                    'assets/images/logos/logo.png',
+                    width: 260,
+                    height: 260,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -201,7 +187,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     children: [
                       Text(
-                        'TaskMaster Pro',
+                        'Focus365',
                         style:
                             theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
@@ -210,7 +196,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Organize your life',
+                        'Focus every day, all 365',
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),

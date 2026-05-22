@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/reminder.dart';
 import '../../models/task.dart';
@@ -170,8 +172,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
     if (authVM.user?.uid == null) {
       if (mounted) {
+        final l = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please sign in to save tasks.')),
+          SnackBar(content: Text(l.get('pleaseSignInToSave'))),
         );
       }
       return;
@@ -450,14 +453,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
             // Shared list
             if (sharedLists.isNotEmpty) ...[
-              Text('List', style: theme.textTheme.titleSmall),
+              Text(l.get('list'), style: theme.textTheme.titleSmall),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
                   ChoiceChip(
-                    label: const Text('My Tasks'),
+                    label: Text(l.get('myTasks')),
                     avatar: const Icon(Icons.person_outline, size: 16),
                     selected: _selectedSharedListId == null,
                     onSelected: (_) =>
@@ -484,14 +487,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
             // Assignee (only when a shared list is selected)
             if (activeSharedList != null) ...[
-              Text('Assignee', style: theme.textTheme.titleSmall),
+              Text(l.get('assignee'), style: theme.textTheme.titleSmall),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
                   ChoiceChip(
-                    label: const Text('Unassigned'),
+                    label: Text(l.get('unassigned')),
                     avatar: const Icon(Icons.person_off_outlined, size: 16),
                     selected: _selectedAssigneeId == null,
                     onSelected: (_) =>
@@ -701,7 +704,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             // Reminders — managed on a dedicated screen so the bottom sheet
             // pickers don't have to fight this form's layout. Disabled until
             // the task has been saved (it needs a real id to navigate to).
-            Text('Reminders', style: theme.textTheme.titleSmall),
+            Text(l.get('reminders'), style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             _RemindersRow(
               isEditing: _isEditing,
@@ -781,17 +784,27 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   leading: Icon(
                     _isUrl(entry.value) ? Icons.link : Icons.note,
                     size: 20,
+                    color: _isUrl(entry.value)
+                        ? theme.colorScheme.primary
+                        : null,
                   ),
                   title: Text(
                     entry.value,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: _isUrl(entry.value)
+                        ? TextStyle(
+                            color: theme.colorScheme.primary,
+                            decoration: TextDecoration.underline,
+                          )
+                        : null,
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.close, size: 18),
                     onPressed: () =>
                         setState(() => _attachments.removeAt(entry.key)),
                   ),
+                  onTap: () => _openAttachment(entry.value),
                 )),
             const SizedBox(height: 20),
 
@@ -857,6 +870,26 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   bool _isUrl(String text) {
     return text.startsWith('http://') || text.startsWith('https://');
   }
+
+  Future<void> _openAttachment(String value) async {
+    if (_isUrl(value)) {
+      final uri = Uri.tryParse(value);
+      final ok = uri != null &&
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!mounted) return;
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open: $value')),
+        );
+      }
+    } else {
+      await Clipboard.setData(ClipboardData(text: value));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Copied to clipboard')),
+      );
+    }
+  }
 }
 
 class _EmojiButton extends StatelessWidget {
@@ -907,6 +940,7 @@ class _EmojiPickerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -916,14 +950,14 @@ class _EmojiPickerSheet extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('Pick an emoji',
+                Text(l.get('pickEmoji'),
                     style: theme.textTheme.titleMedium),
                 const Spacer(),
                 if (current != null)
                   TextButton.icon(
                     onPressed: () => Navigator.pop(context, ''),
                     icon: const Icon(Icons.close, size: 18),
-                    label: const Text('Clear'),
+                    label: Text(l.get('clear')),
                   ),
               ],
             ),
@@ -967,11 +1001,12 @@ class _RemindersRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     if (!isEditing || taskId == null) {
       return OutlinedButton.icon(
         onPressed: null,
         icon: const Icon(Icons.alarm),
-        label: const Text('Save the task first to add reminders'),
+        label: Text(l.get('saveFirstForReminders')),
       );
     }
 
@@ -988,10 +1023,10 @@ class _RemindersRow extends StatelessWidget {
       ),
       icon: const Icon(Icons.alarm),
       label: Text(count == 0
-          ? 'No reminders — tap to add'
+          ? l.get('noRemindersTap')
           : count == 1
-              ? '1 reminder'
-              : '$count reminders'),
+              ? l.get('reminderOne')
+              : l.format('reminderOther', {'count': count})),
     );
   }
 }

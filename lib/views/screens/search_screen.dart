@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/note.dart';
 import '../../models/task.dart';
+import '../../utils/app_localizations.dart';
 import '../../viewmodels/note_viewmodel.dart';
 import '../../viewmodels/task_viewmodel.dart';
 
@@ -30,6 +31,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     final taskVM = context.watch<TaskViewModel>();
     final noteVM = context.watch<NoteViewModel>();
 
@@ -54,8 +56,8 @@ class _SearchScreenState extends State<SearchScreen> {
         title: TextField(
           controller: _ctrl,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Search tasks and notes',
+          decoration: InputDecoration(
+            hintText: l.get('searchTasksAndNotes'),
             border: InputBorder.none,
           ),
           style: theme.textTheme.titleMedium,
@@ -80,7 +82,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   children: [
                     if (tasks.isNotEmpty) ...[
-                      _SectionLabel(label: 'Tasks', count: tasks.length),
+                      _SectionLabel(
+                          label: l.get('tasks'), count: tasks.length),
                       ...tasks.map((t) => _TaskResultTile(
                             task: t,
                             query: q,
@@ -88,7 +91,8 @@ class _SearchScreenState extends State<SearchScreen> {
                           )),
                     ],
                     if (notes.isNotEmpty) ...[
-                      _SectionLabel(label: 'Notes', count: notes.length),
+                      _SectionLabel(
+                          label: l.get('notes'), count: notes.length),
                       ...notes.map((n) => _NoteResultTile(
                             note: n,
                             query: q,
@@ -109,6 +113,7 @@ class _EmptyHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -117,7 +122,7 @@ class _EmptyHint extends StatelessWidget {
               size: 64, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(height: 12),
           Text(
-            'Start typing to search',
+            l.get('startTypingToSearch'),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -135,6 +140,7 @@ class _NoResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -145,7 +151,7 @@ class _NoResults extends StatelessWidget {
                 size: 56, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(height: 12),
             Text(
-              'No results for "$query"',
+              l.format('noResultsFor', {'query': query}),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -246,7 +252,9 @@ class _NoteResultTile extends StatelessWidget {
             color: Colors.black87, size: 20),
       ),
       title: _Highlighted(
-        text: note.title.isEmpty ? '(Untitled note)' : note.title,
+        text: note.title.isEmpty
+            ? AppLocalizations.of(context).get('untitledNote')
+            : note.title,
         query: query,
         baseStyle: theme.textTheme.bodyLarge,
       ),

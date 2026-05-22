@@ -300,7 +300,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
-                    height: 80,
+                    height: 92,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: projects.length,
@@ -325,6 +325,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Row(
                                   children: [
@@ -344,16 +345,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                         overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 6),
                                 Text(
                                   '$taskCount ${l.get('active').toLowerCase()}',
                                   style: theme.textTheme.labelSmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ],
                             ),

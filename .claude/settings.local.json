@@ -12,7 +12,18 @@
       "Bash(firebase login:list *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(awk {print NR\": \"length\\($0\\)\" chars\"} *)"
+      "Bash(awk {print NR\": \"length\\($0\\)\" chars\"} *)",
+      "Bash(findstr /N \"Icon\")",
+      "Bash(findstr /V \"//\")",
+      "Bash(Remove-Item -Path \"assets\\\\images\\\\icon\\\\focusorPomodoro.png\",\"assets\\\\images\\\\icon\\\\checklist.png\",\"assets\\\\images\\\\icon\\\\project.png\",\"assets\\\\images\\\\icon\\\\statistic.png\",\"assets\\\\images\\\\icon\\\\setting.png\",\"assets\\\\images\\\\icon\\\\notification.png\",\"assets\\\\images\\\\icon\\\\calendar.png\",\"assets\\\\images\\\\icon\\\\task.png\" -Force)",
+      "Bash(Remove-Item -Path \"assets\\\\images\\\\icon\" -Force -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Path \"lib\\\\views\\\\widgets\\\\app_asset_icon.dart\" -Force)",
+      "Bash(dart run *)",
+      "Bash(where pandoc *)",
+      "Bash(where python *)",
+      "Bash(where py *)",
+      "Bash(py -m pip show python-docx)",
+      "Bash(py *)"
     ]
   }
 }

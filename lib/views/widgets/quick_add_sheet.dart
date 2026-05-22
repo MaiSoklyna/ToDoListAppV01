@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/reminder.dart';
 import '../../models/task.dart';
+import '../../utils/app_localizations.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/settings_viewmodel.dart';
 
@@ -105,6 +106,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     final viewInsets = MediaQuery.of(context).viewInsets;
     return Padding(
       // Lift the sheet above the keyboard so the title field stays visible.
@@ -136,8 +138,8 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                 onSubmitted: (_) {
                   if (_isValid) _save(context);
                 },
-                decoration: const InputDecoration(
-                  hintText: 'What needs doing?',
+                decoration: InputDecoration(
+                  hintText: l.get('whatNeedsDoing'),
                   border: InputBorder.none,
                 ),
                 style: theme.textTheme.titleMedium,
@@ -148,14 +150,14 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                 child: Row(
                   children: [
                     _DatePill(
-                      label: 'Today',
+                      label: l.get('today'),
                       icon: Icons.today,
                       selected: _isSameDay(_dueDate, DateTime.now()),
                       onTap: () => _setDate(_endOfTodayIfNoTime()),
                     ),
                     const SizedBox(width: 8),
                     _DatePill(
-                      label: 'Tomorrow',
+                      label: l.get('tomorrow'),
                       icon: Icons.event,
                       selected: _isSameDay(
                           _dueDate,
@@ -166,7 +168,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                     ),
                     const SizedBox(width: 8),
                     _DatePill(
-                      label: _customLabel(),
+                      label: _customLabel(l),
                       icon: Icons.calendar_month,
                       selected: _dueDate != null &&
                           !_isSameDay(_dueDate, DateTime.now()) &&
@@ -177,7 +179,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                     if (_dueDate != null) ...[
                       const SizedBox(width: 8),
                       _DatePill(
-                        label: 'No date',
+                        label: l.get('noDate'),
                         icon: Icons.cancel_outlined,
                         selected: false,
                         onTap: () => _setDate(null),
@@ -188,21 +190,21 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
               ),
               const SizedBox(height: 12),
               SegmentedButton<int>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: 1,
-                    label: Text('Low'),
-                    icon: Icon(Icons.arrow_downward),
+                    label: Text(l.get('low')),
+                    icon: const Icon(Icons.arrow_downward),
                   ),
                   ButtonSegment(
                     value: 2,
-                    label: Text('Med'),
-                    icon: Icon(Icons.remove),
+                    label: Text(l.get('priorityMed')),
+                    icon: const Icon(Icons.remove),
                   ),
                   ButtonSegment(
                     value: 3,
-                    label: Text('High'),
-                    icon: Icon(Icons.arrow_upward),
+                    label: Text(l.get('high')),
+                    icon: const Icon(Icons.arrow_upward),
                   ),
                 ],
                 selected: {_priority},
@@ -214,13 +216,13 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                   TextButton.icon(
                     onPressed: _isValid ? () => _openEditor(context) : null,
                     icon: const Icon(Icons.tune),
-                    label: const Text('More options'),
+                    label: Text(l.get('moreOptions')),
                   ),
                   const Spacer(),
                   FilledButton.icon(
                     onPressed: _isValid ? () => _save(context) : null,
                     icon: const Icon(Icons.check),
-                    label: const Text('Add task'),
+                    label: Text(l.get('addTaskAction')),
                   ),
                 ],
               ),
@@ -256,12 +258,12 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  String _customLabel() {
+  String _customLabel(AppLocalizations l) {
     final d = _dueDate;
-    if (d == null) return 'Pick date';
-    if (_isSameDay(d, DateTime.now())) return 'Pick date';
+    if (d == null) return l.get('pickDate');
+    if (_isSameDay(d, DateTime.now())) return l.get('pickDate');
     if (_isSameDay(d, DateTime.now().add(const Duration(days: 1)))) {
-      return 'Pick date';
+      return l.get('pickDate');
     }
     final hasTime = d.hour != 0 || d.minute != 0;
     final dayLabel = DateFormat.MMMd().format(d);

@@ -28,7 +28,7 @@ class _TaskMasterAppState extends State<TaskMasterApp> {
     _router ??= createAppRouter(authVM);
 
     return MaterialApp.router(
-      title: 'TaskMaster Pro',
+      title: 'Focus365',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(settingsVM.locale),
       darkTheme: AppTheme.darkTheme(settingsVM.locale),

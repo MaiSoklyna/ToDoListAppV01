@@ -303,18 +303,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           const SizedBox(height: 24),
 
           // 30-day completion trend line chart
-          Text('Last 30 days',
+          Text(l.get('last30Days'),
               style: theme.textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           SizedBox(
             height: 180,
-            child: _build30DayTrend(context, theme, taskVM, now),
+            child: _build30DayTrend(context, theme, taskVM, now, l),
           ),
           const SizedBox(height: 24),
 
           // Day-of-week productivity bar chart
-          Text('By day of week',
+          Text(l.get('byDayOfWeek'),
               style: theme.textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
@@ -450,6 +450,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     ThemeData theme,
     TaskViewModel taskVM,
     DateTime now,
+    AppLocalizations l,
   ) {
     final spots = <FlSpot>[];
     int maxY = 0;
@@ -481,7 +482,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               reservedSize: 24,
               interval: 29,
               getTitlesWidget: (value, _) {
-                final label = value == 0 ? '30d ago' : 'today';
+                final label = value == 0 ? l.get('thirtyDaysAgo') : l.get('today');
                 return Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(label, style: theme.textTheme.labelSmall),

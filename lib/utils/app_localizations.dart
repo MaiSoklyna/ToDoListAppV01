@@ -16,10 +16,19 @@ class AppLocalizations {
     return _localizedValues[locale.languageCode]?[key] ?? _localizedValues['en']![key] ?? key;
   }
 
+  /// Look up [key] and substitute `{name}` placeholders with [params].
+  String format(String key, Map<String, Object?> params) {
+    var s = get(key);
+    params.forEach((k, v) {
+      s = s.replaceAll('{$k}', '${v ?? ''}');
+    });
+    return s;
+  }
+
   static const Map<String, Map<String, String>> _localizedValues = {
     'en': {
       // App
-      'appName': 'TaskMaster Pro',
+      'appName': 'Focus365',
       'loading': 'Loading...',
 
       // Nav
@@ -279,10 +288,114 @@ class AppLocalizations {
       'batchDeleteConfirm': 'Delete selected tasks?',
       'deleted': 'deleted',
       'undo': 'Undo',
+
+      // Drawer / Top bar
+      'search': 'Search',
+      'sharedLists': 'Shared lists',
+      'notes': 'Notes',
+      'navigate': 'Navigate',
+      'tools': 'Tools',
+      'categories': 'Categories',
+
+      // Home filters & sections
+      'important': 'Important',
+      'assignedToMe': 'Assigned to me',
+      'later': 'Later',
+      'noDate': 'No date',
+      'tasksTodayOne': '1 task today',
+      'tasksTodayOther': '{count} tasks today',
+      'overdueOne': '1 overdue',
+      'overdueOther': '{count} overdue',
+      'categoryFilter': 'Category · {name}',
+      'projectFilter': 'Project · {name}',
+
+      // Pomodoro
+      'focusingOn': 'Focusing on',
+      'sessionOne': '1 session',
+      'sessionOther': '{count} sessions',
+
+      // Settings extras
+      'restoreBackup': 'Restore from backup',
+      'restoreBackupDesc': 'Append items from a previous JSON backup',
+      'newTaskDefaults': 'New-task defaults',
+      'newTaskDefaultsDesc': 'Applied when you create a task',
+      'defaultReminder': 'Default reminder',
+      'defaultCategoryTitle': 'Default category',
+      'priorityMed': 'Med',
+      'appDescription':
+          'A full-featured task management app with Firebase integration, offline support, and multi-language support.',
+      'reminderOff': 'Off',
+      'reminderAtDue': 'At due time',
+      'reminderMinBefore': '{n} min before',
+      'reminderHourBeforeOne': '1 hour before',
+      'reminderHourBeforeOther': '{n} hours before',
+      'reminderDayBeforeOne': '1 day before',
+      'reminderDayBeforeOther': '{n} days before',
+      'pickFileFromDevice': 'Pick a file from device…',
+      'recentBackups': 'Recent backups',
+      'cantReadFile':
+          "Couldn't read the selected file. Try a different location.",
+      'restoreThisBackup': 'Restore this backup?',
+      'restoreWarning':
+          'Existing items with the same id will be kept; only new items will be added. This action cannot be undone.',
+      'restoreAction': 'Restore',
+      'signInToRestore': 'Sign in to restore a backup.',
+      'restoreFailed': 'Restore failed: {error}',
+      'jsonBackup': 'JSON backup',
+      'jsonBackupDesc': 'Full snapshot — tasks, projects, labels, notes',
+      'editCategory': 'Edit category',
+      'addCategory': 'Add category',
+      'name': 'Name',
+      'icon': 'Icon',
+      'color': 'Color',
+      'builtIn': 'Built-in',
+
+      // Add task screen
+      'pleaseSignInToSave': 'Please sign in to save tasks.',
+      'list': 'List',
+      'myTasks': 'My Tasks',
+      'assignee': 'Assignee',
+      'unassigned': 'Unassigned',
+      'reminders': 'Reminders',
+      'pickEmoji': 'Pick an emoji',
+      'clear': 'Clear',
+      'saveFirstForReminders': 'Save the task first to add reminders',
+      'noRemindersTap': 'No reminders — tap to add',
+      'reminderOne': '1 reminder',
+      'reminderOther': '{count} reminders',
+
+      // Quick add sheet
+      'whatNeedsDoing': 'What needs doing?',
+      'moreOptions': 'More options',
+      'addTaskAction': 'Add task',
+
+      // Notes screen
+      'noNotesYet': 'No notes yet',
+      'tapPlusToCapture': 'Tap + to capture a quick thought.',
+      'untitled': 'Untitled',
+      'deleteNoteQ': 'Delete note?',
+      'thisCannotBeUndone': 'This cannot be undone.',
+      'delete': 'Delete',
+      'title': 'Title',
+      'note': 'Note',
+      'untitledNote': '(Untitled note)',
+
+      // Search screen
+      'searchTasksAndNotes': 'Search tasks and notes',
+      'startTypingToSearch': 'Start typing to search',
+      'noResultsFor': 'No results for "{query}"',
+
+      // Calendar
+      'allDay': 'All day',
+      'thirtyDaysAgo': '30d ago',
+
+      // Statistics
+      'last30Days': 'Last 30 days',
+      'byDayOfWeek': 'By day of week',
     },
     'km': {
       // App
-      'appName': 'TaskMaster Pro',
+      'appName': 'Focus365',
       'loading': 'កំពុងផ្ទុក...',
 
       // Nav
@@ -542,6 +655,110 @@ class AppLocalizations {
       'batchDeleteConfirm': 'លុបភារកិច្ចដែលបានជ្រើសរើស?',
       'deleted': 'បានលុប',
       'undo': 'មិនធ្វើវិញ',
+
+      // Drawer / Top bar
+      'search': 'ស្វែងរក',
+      'sharedLists': 'បញ្ជីរួម',
+      'notes': 'កំណត់ត្រា',
+      'navigate': 'រុករក',
+      'tools': 'ឧបករណ៍',
+      'categories': 'ប្រភេទ',
+
+      // Home filters & sections
+      'important': 'សំខាន់',
+      'assignedToMe': 'បានកំណត់ឱ្យខ្ញុំ',
+      'later': 'ពេលក្រោយ',
+      'noDate': 'គ្មានកាលបរិច្ឆេទ',
+      'tasksTodayOne': 'ភារកិច្ច ១ ថ្ងៃនេះ',
+      'tasksTodayOther': 'ភារកិច្ច {count} ថ្ងៃនេះ',
+      'overdueOne': 'ហួសកំណត់ ១',
+      'overdueOther': 'ហួសកំណត់ {count}',
+      'categoryFilter': 'ប្រភេទ · {name}',
+      'projectFilter': 'គម្រោង · {name}',
+
+      // Pomodoro
+      'focusingOn': 'កំពុងផ្ដោតលើ',
+      'sessionOne': 'វគ្គ ១',
+      'sessionOther': 'វគ្គ {count}',
+
+      // Settings extras
+      'restoreBackup': 'ស្ដារពីការបម្រុងទុក',
+      'restoreBackupDesc': 'បន្ថែមធាតុពីការបម្រុងទុក JSON មុន',
+      'newTaskDefaults': 'លំនាំដើមភារកិច្ចថ្មី',
+      'newTaskDefaultsDesc': 'អនុវត្តពេលអ្នកបង្កើតភារកិច្ច',
+      'defaultReminder': 'ការរំលឹកលំនាំដើម',
+      'defaultCategoryTitle': 'ប្រភេទលំនាំដើម',
+      'priorityMed': 'មធ្យម',
+      'appDescription':
+          'កម្មវិធីគ្រប់គ្រងភារកិច្ចពេញលេញដែលមាន Firebase ការគាំទ្រគ្មានអ៊ីនធឺណិត និងពហុភាសា។',
+      'reminderOff': 'បិទ',
+      'reminderAtDue': 'នៅពេលកំណត់',
+      'reminderMinBefore': '{n} នាទីមុន',
+      'reminderHourBeforeOne': '១ ម៉ោងមុន',
+      'reminderHourBeforeOther': '{n} ម៉ោងមុន',
+      'reminderDayBeforeOne': '១ ថ្ងៃមុន',
+      'reminderDayBeforeOther': '{n} ថ្ងៃមុន',
+      'pickFileFromDevice': 'ជ្រើសរើសឯកសារពីឧបករណ៍…',
+      'recentBackups': 'ការបម្រុងទុកថ្មីៗ',
+      'cantReadFile':
+          'មិនអាចអានឯកសារដែលបានជ្រើសរើស។ សូមសាកមួយផ្សេង។',
+      'restoreThisBackup': 'ស្ដារការបម្រុងទុកនេះ?',
+      'restoreWarning':
+          'ធាតុដែលមាន id ដូចគ្នានឹងត្រូវរក្សាទុក។ មានតែធាតុថ្មីប៉ុណ្ណោះនឹងត្រូវបន្ថែម។ សកម្មភាពនេះមិនអាចមិនធ្វើវិញបានទេ។',
+      'restoreAction': 'ស្ដារ',
+      'signInToRestore': 'ចូលដើម្បីស្ដារការបម្រុងទុក។',
+      'restoreFailed': 'ការស្ដារបរាជ័យ: {error}',
+      'jsonBackup': 'ការបម្រុងទុក JSON',
+      'jsonBackupDesc': 'ការថតយកពេញលេញ — ភារកិច្ច គម្រោង ស្លាក កំណត់ត្រា',
+      'editCategory': 'កែសម្រួលប្រភេទ',
+      'addCategory': 'បន្ថែមប្រភេទ',
+      'name': 'ឈ្មោះ',
+      'icon': 'រូបតំណាង',
+      'color': 'ពណ៌',
+      'builtIn': 'លំនាំដើម',
+
+      // Add task screen
+      'pleaseSignInToSave': 'សូមចូលដើម្បីរក្សាទុកភារកិច្ច។',
+      'list': 'បញ្ជី',
+      'myTasks': 'ភារកិច្ចរបស់ខ្ញុំ',
+      'assignee': 'អ្នកទទួល',
+      'unassigned': 'មិនបានកំណត់',
+      'reminders': 'ការរំលឹក',
+      'pickEmoji': 'ជ្រើសរើសអ៊ីម៉ូជី',
+      'clear': 'សម្អាត',
+      'saveFirstForReminders': 'រក្សាទុកមុនដើម្បីបន្ថែមការរំលឹក',
+      'noRemindersTap': 'គ្មានការរំលឹក — ចុចដើម្បីបន្ថែម',
+      'reminderOne': 'ការរំលឹក ១',
+      'reminderOther': 'ការរំលឹក {count}',
+
+      // Quick add sheet
+      'whatNeedsDoing': 'តើត្រូវធ្វើអ្វី?',
+      'moreOptions': 'ជម្រើសផ្សេងទៀត',
+      'addTaskAction': 'បន្ថែមភារកិច្ច',
+
+      // Notes screen
+      'noNotesYet': 'មិនមានកំណត់ត្រានៅឡើយ',
+      'tapPlusToCapture': 'ចុច + ដើម្បីសរសេរគំនិតរហ័ស។',
+      'untitled': 'គ្មានចំណងជើង',
+      'deleteNoteQ': 'លុបកំណត់ត្រា?',
+      'thisCannotBeUndone': 'សកម្មភាពនេះមិនអាចមិនធ្វើវិញបានទេ។',
+      'delete': 'លុប',
+      'title': 'ចំណងជើង',
+      'note': 'កំណត់ត្រា',
+      'untitledNote': '(កំណត់ត្រាគ្មានចំណងជើង)',
+
+      // Search screen
+      'searchTasksAndNotes': 'ស្វែងរកភារកិច្ច និងកំណត់ត្រា',
+      'startTypingToSearch': 'ចាប់ផ្ដើមវាយដើម្បីស្វែងរក',
+      'noResultsFor': 'គ្មានលទ្ធផលសម្រាប់ "{query}"',
+
+      // Calendar
+      'allDay': 'ពេញមួយថ្ងៃ',
+      'thirtyDaysAgo': '៣០ថ្ងៃមុន',
+
+      // Statistics
+      'last30Days': 'ថ្ងៃចុងក្រោយ ៣០',
+      'byDayOfWeek': 'តាមថ្ងៃនៃសប្ដាហ៍',
     },
   };
 }

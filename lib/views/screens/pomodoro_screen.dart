@@ -296,6 +296,7 @@ class _PomodoroScreenState extends State<PomodoroScreen>
                   sessionsForThisTask:
                       _taskCounts[_selectedTask!.id] ?? 0,
                   tone: timerColor,
+                  l: l,
                 ),
               ],
               const SizedBox(height: 32),
@@ -440,6 +441,11 @@ class _PomodoroScreenState extends State<PomodoroScreen>
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   initialValue: _selectedTask?.id,
+                  // Force the dropdown to fill the field width — without this
+                  // the selected item Text uses its intrinsic width and
+                  // overflows on long task titles ("RenderFlex overflowed
+                  // by N pixels on the right").
+                  isExpanded: true,
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.task_alt),
@@ -454,7 +460,9 @@ class _PomodoroScreenState extends State<PomodoroScreen>
                           value: t.id,
                           child: Text(
                             t.title,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            softWrap: false,
                           ),
                         )),
                   ],
@@ -480,11 +488,13 @@ class _FocusedTaskBanner extends StatelessWidget {
   final Task task;
   final int sessionsForThisTask;
   final Color tone;
+  final AppLocalizations l;
 
   const _FocusedTaskBanner({
     required this.task,
     required this.sessionsForThisTask,
     required this.tone,
+    required this.l,
   });
 
   @override
@@ -506,7 +516,7 @@ class _FocusedTaskBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Focusing on',
+                  l.get('focusingOn'),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     letterSpacing: 0.4,
@@ -536,8 +546,8 @@ class _FocusedTaskBanner extends StatelessWidget {
               ),
               child: Text(
                 sessionsForThisTask == 1
-                    ? '1 session'
-                    : '$sessionsForThisTask sessions',
+                    ? l.get('sessionOne')
+                    : l.format('sessionOther', {'count': sessionsForThisTask}),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: tone,
                   fontWeight: FontWeight.w700,

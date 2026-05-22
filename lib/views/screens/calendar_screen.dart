@@ -339,6 +339,7 @@ class _AllDayStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest
@@ -354,7 +355,7 @@ class _AllDayStrip extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'All day',
+            l.get('allDay'),
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
