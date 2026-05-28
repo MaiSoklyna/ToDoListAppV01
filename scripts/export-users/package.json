@@ -1,5 +1,5 @@
 {
-  "name": "focus365-export-users",
+  "name": "focus24-export-users",
   "version": "1.0.0",
   "private": true,
   "description": "One-off Firebase Admin script to export user accounts to CSV.",

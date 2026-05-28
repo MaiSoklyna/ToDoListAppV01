@@ -1,4 +1,4 @@
-"""Generate a Focus365 project report as Microsoft Word (.docx)."""
+"""Generate a Focus24 project report as Microsoft Word (.docx)."""
 
 import os
 from datetime import datetime
@@ -16,7 +16,7 @@ GREY = RGBColor(0x55, 0x55, 0x55)
 def add_cover(doc):
     title = doc.add_paragraph()
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = title.add_run("Focus365")
+    run = title.add_run("Focus24")
     run.font.size = Pt(48)
     run.font.bold = True
     run.font.color.rgb = PRIMARY
@@ -110,7 +110,7 @@ def build():
     h1(doc, "1. Executive Summary")
     para(
         doc,
-        "Focus365 is a cross-platform productivity and task-management application "
+        "Focus24 is a cross-platform productivity and task-management application "
         "for Android and iOS. The name reflects its core philosophy: stay focused "
         "every day of the year. The app combines daily task tracking, Pomodoro-style "
         "focus sessions, calendar planning, shared collaboration lists, statistics, "
@@ -157,7 +157,7 @@ def build():
         doc,
         "Every direct dependency declared in pubspec.yaml is listed below with the "
         "exact version resolved in pubspec.lock and a one-line description of how it "
-        "is used in Focus365.",
+        "is used in Focus24.",
     )
     h2(doc, "Direct runtime dependencies")
     table(
@@ -270,7 +270,7 @@ def build():
     h1(doc, "3. Architecture")
     para(
         doc,
-        "Focus365 follows an MVVM (Model-View-ViewModel) pattern. The view layer is "
+        "Focus24 follows an MVVM (Model-View-ViewModel) pattern. The view layer is "
         "stateless where possible and consumes ChangeNotifier-based view models via "
         "Provider. View models orchestrate one or more services, each of which talks "
         "to a single backing store (Firestore, Hive, or a platform API).",
@@ -320,7 +320,7 @@ def build():
     h2(doc, "4.3 Background / pause")
     bullet(doc, "PomodoroScreen persists timer state to a Hive box on every state change so timers survive a backgrounded app.")
     bullet(doc, "didChangeAppLifecycleState restores the timer using the recorded timerStartedAt to compute elapsed seconds; if elapsed exceeded the remaining duration the timer auto-completes on resume.")
-    bullet(doc, "Notifications continue to fire from flutter_local_notifications even when Focus365 is killed.")
+    bullet(doc, "Notifications continue to fire from flutter_local_notifications even when Focus24 is killed.")
     h2(doc, "4.4 Sign-out / shutdown")
     bullet(doc, "Sign-out calls AuthViewModel.signOut() which forwards to FirebaseAuth.instance.signOut() and clears every view model so subsequent logins start clean.")
     bullet(doc, "Hive boxes are kept on disk; the next sign-in opens the per-uid box and reuses any cached data.")
@@ -689,7 +689,7 @@ def build():
             ],
             [
                 "3",
-                "Launcher icon on device still showed the default Flutter logo instead of Focus365 logo.",
+                "Launcher icon on device still showed the default Flutter logo instead of Focus24 logo.",
                 "flutter_launcher_icons was configured but never installed/run.",
                 "Added the package, ran flutter pub get, regenerated icons (legacy + adaptive), then iterated config to remove adaptive shrink so the logo uses full width/height. Documented the required flutter clean / re-install step.",
             ],
@@ -713,7 +713,7 @@ def build():
             ],
             [
                 "7",
-                "App name TaskMaster Pro to be replaced with Focus365 ('focus every day, 365 days a year').",
+                "App name TaskMaster Pro renamed to Focus24.",
                 "Brand rename.",
                 "Updated appName key in localisation, MaterialApp title, About dialog, biometric prompt, PDF report header, JSON backup metadata, shared-list invite share text, splash subtitle.",
             ],
@@ -800,13 +800,13 @@ def build():
         "node export_users.js   # writes users.csv\n",
     )
 
-    out = r"D:\ToDoListApp\Focus365_Project_Report.docx"
+    out = r"D:\ToDoListApp\Focus24_Project_Report.docx"
     try:
         doc.save(out)
     except PermissionError:
         # File is still open in Word — write a timestamped copy instead.
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out = rf"D:\ToDoListApp\Focus365_Project_Report_{stamp}.docx"
+        out = rf"D:\ToDoListApp\Focus24_Project_Report_{stamp}.docx"
         doc.save(out)
     print(f"Wrote {out}")
 

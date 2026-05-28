@@ -24,7 +24,7 @@ if (!fs.existsSync(keyPath)) {
     '\nMissing service-account.json next to this script.\n\n' +
       'To create it:\n' +
       '  1. Open https://console.firebase.google.com\n' +
-      '  2. Pick your project (Focus365).\n' +
+      '  2. Pick your project (Focus24).\n' +
       '  3. Click the gear icon → Project settings.\n' +
       '  4. Open the "Service accounts" tab.\n' +
       '  5. Click "Generate new private key" → "Generate key".\n' +

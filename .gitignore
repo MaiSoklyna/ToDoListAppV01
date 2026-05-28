@@ -55,5 +55,6 @@ lib/firebase_options.dart
 # Sprint plan docs (not needed in repo)
 *.docx
 
+
 # Flutter plugin registration (auto-generated)
 .flutter-plugins

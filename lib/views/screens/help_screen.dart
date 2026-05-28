@@ -110,9 +110,9 @@ class HelpScreen extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.email_outlined),
                   title: Text(l.get('emailSupport')),
-                  subtitle: const Text('support@taskmasterpro.app'),
+                  subtitle: const Text('support@focus24.app'),
                   onTap: () {
-                    launchUrl(Uri.parse('mailto:support@taskmasterpro.app'));
+                    launchUrl(Uri.parse('mailto:support@focus24.app'));
                   },
                 ),
                 ListTile(

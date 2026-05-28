@@ -283,11 +283,11 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text(l.get('about')),
-            subtitle: const Text('Focus365 v1.0.0'),
+            subtitle: const Text('Focus24 v1.0.0'),
             onTap: () {
               showAboutDialog(
                 context: context,
-                applicationName: 'Focus365',
+                applicationName: 'Focus24',
                 applicationVersion: '1.0.0',
                 applicationIcon: Icon(
                   Icons.task_alt,

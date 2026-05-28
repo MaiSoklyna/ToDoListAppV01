@@ -187,7 +187,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     children: [
                       Text(
-                        'Focus365',
+                        'Focus24',
                         style:
                             theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,

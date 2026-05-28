@@ -2,6 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    // TODO: Add widget tests for TaskMaster Pro
+    // TODO: Add widget tests for Focus24
   });
 }

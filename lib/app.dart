@@ -9,14 +9,14 @@ import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/settings_viewmodel.dart';
 import 'services/connectivity_service.dart';
 
-class TaskMasterApp extends StatefulWidget {
-  const TaskMasterApp({super.key});
+class Focus24App extends StatefulWidget {
+  const Focus24App({super.key});
 
   @override
-  State<TaskMasterApp> createState() => _TaskMasterAppState();
+  State<Focus24App> createState() => _Focus24AppState();
 }
 
-class _TaskMasterAppState extends State<TaskMasterApp> {
+class _Focus24AppState extends State<Focus24App> {
   GoRouter? _router;
 
   @override
@@ -28,7 +28,7 @@ class _TaskMasterAppState extends State<TaskMasterApp> {
     _router ??= createAppRouter(authVM);
 
     return MaterialApp.router(
-      title: 'Focus365',
+      title: 'Focus24',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(settingsVM.locale),
       darkTheme: AppTheme.darkTheme(settingsVM.locale),

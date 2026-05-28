@@ -28,7 +28,7 @@ class AppLocalizations {
   static const Map<String, Map<String, String>> _localizedValues = {
     'en': {
       // App
-      'appName': 'Focus365',
+      'appName': 'Focus24',
       'loading': 'Loading...',
 
       // Nav
@@ -395,7 +395,7 @@ class AppLocalizations {
     },
     'km': {
       // App
-      'appName': 'Focus365',
+      'appName': 'Focus24',
       'loading': 'កំពុងផ្ទុក...',
 
       // Nav

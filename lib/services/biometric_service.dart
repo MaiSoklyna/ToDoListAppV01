@@ -26,7 +26,7 @@ class BiometricService {
     }
   }
 
-  Future<bool> authenticate({String reason = 'Authenticate to access Focus365'}) async {
+  Future<bool> authenticate({String reason = 'Authenticate to access Focus24'}) async {
     try {
       return await _auth.authenticate(
         localizedReason: reason,

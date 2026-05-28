@@ -67,7 +67,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => HomeFilterIntent()),
         ChangeNotifierProvider.value(value: connectivityService),
       ],
-      child: const TaskMasterApp(),
+      child: const Focus24App(),
     ),
   );
 }
