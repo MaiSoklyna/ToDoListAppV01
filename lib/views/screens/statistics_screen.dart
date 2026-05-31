@@ -5,6 +5,9 @@ import '../../utils/app_localizations.dart';
 import '../../viewmodels/task_viewmodel.dart';
 import '../../services/streak_service.dart';
 
+// Statistics, Calendar & Pomodoro — charts, completion streak, focus timer.
+// Maintained by Rin Monyroth.
+
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
 
