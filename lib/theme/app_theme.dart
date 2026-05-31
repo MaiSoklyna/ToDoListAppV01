@@ -10,6 +10,9 @@ import 'package:google_fonts/google_fonts.dart';
 /// Khmer text gets extra line-height because consonant clusters with sub/
 /// superscripts need vertical breathing room — too tight and the marks
 /// collide with adjacent lines.
+/// UI/UX & Theming — color palette, fonts, light/dark theme.
+// Maintained by Soklong.
+
 class AppTheme {
   // === Color tokens =========================================================
   // Light mode keeps the warm Khmer-gold identity. Dark mode shifts to a
