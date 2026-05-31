@@ -5,6 +5,7 @@ import '../../utils/app_localizations.dart';
 import '../../utils/user_session_bootstrap.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 
+// Login & registration screen, plus password reset flow
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
